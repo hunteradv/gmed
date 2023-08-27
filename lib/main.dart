@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:gmed/login.dart';
+import 'package:gmed/medicineList.dart';
+import 'package:gmed/recoveryPassword.dart';
 import 'package:gmed/register.dart';
 import 'homePage.dart';
 
@@ -24,13 +26,15 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData.light(),
+        theme: ThemeData(fontFamily: 'montserratLight'),
         debugShowCheckedModeBanner: false,
         initialRoute: '/homepage',
         routes: {
           '/homepage': (context) => HomePage(),
           '/register': (context) => RegisterPage(),
-          '/login': (context) => LoginPage()
+          '/login': (context) => LoginPage(),
+          '/recoveryPassword': (context) => RecoveryPasswordPage(context),
+          '/medicineList': (context) => MedicineListPage()
         });
   }
 }

@@ -75,12 +75,16 @@ class HomePage extends StatelessWidget {
               ),
               Container(
                 margin: const EdgeInsets.fromLTRB(0, 10, 0, 0),
-                child: const Text(
-                  'esqueceu a senha?',
-                  style: TextStyle(
-                      color: Color(0xFF585858),
-                      fontSize: 17,
-                      fontFamily: 'montserratLight'),
+                child: GestureDetector(
+                  onTap: () =>
+                      Navigator.pushNamed(context, '/recoveryPassword'),
+                  child: const Text(
+                    'esqueceu a senha?',
+                    style: TextStyle(
+                        color: Color(0xFF585858),
+                        fontSize: 17,
+                        fontFamily: 'montserratLight'),
+                  ),
                 ),
               ),
             ],

@@ -98,7 +98,13 @@ class _LoginPageState extends State<LoginPage> {
         return;
       }
 
+      if (e.toString().contains('email address is badly formatted')) {
+        showAlertDialog('e-mail inválido');
+        return;
+      }
+
       showAlertDialog(e.toString());
+      return;
     }
   }
 

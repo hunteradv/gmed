@@ -108,7 +108,18 @@ class _RegisterPageState extends State<RegisterPage> {
       // ignore: use_build_context_synchronously
       Navigator.of(context).pushNamed('/login');
     } on Exception catch (e) {
+      if (e.toString().contains('wrong-password')) {
+        showAlertDialog('senha incorreta');
+        return;
+      }
+
+      if (e.toString().contains('email address is badly formatted')) {
+        showAlertDialog('e-mail inválido');
+        return;
+      }
+
       showAlertDialog(e.toString());
+      return;
     }
   }
 
