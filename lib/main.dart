@@ -30,10 +30,10 @@ class MyApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         initialRoute: '/homepage',
         routes: {
-          '/homepage': (context) => HomePage(),
-          '/register': (context) => RegisterPage(),
-          '/login': (context) => LoginPage(),
-          '/recoveryPassword': (context) => RecoveryPasswordPage(context),
+          '/homepage': (context) => const HomePage(),
+          '/register': (context) => const RegisterPage(),
+          '/login': (context) => const LoginPage(),
+          '/recoveryPassword': (context) => RecoveryPasswordPage(),
           '/medicineList': (context) => MedicineListPage()
         });
   }

@@ -1,9 +1,16 @@
-import 'package:firebase_auth/firebase_auth.dart';
+// ignore: file_names
+import 'dart:async';
+
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'messaging.dart';
 
 // ignore: must_be_immutable
 class MedicineListPage extends StatelessWidget {
-  TextEditingController emailTxt = TextEditingController();
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  Messaging messaging = Messaging();
+
+  MedicineListPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -41,24 +48,41 @@ class MedicineListPage extends StatelessWidget {
                   ),
                 ),
                 child: Padding(
-                  padding: const EdgeInsets.all(20),
-                  child: ListView(
-                    children: [
-                      const SizedBox(
-                        height: 60,
-                      ),
-                      Container(
-                        margin: const EdgeInsets.fromLTRB(35, 0, 19.5, 30),
-                        child: const Center(
-                          child: Text(
-                              'enviaremos um e-mail com mais informações sobre a redefinição de sua senha',
-                              style: TextStyle(
-                                fontSize: 17,
-                                color: Color(0xFF585858),
-                              )),
-                        ),
-                      ),
-                    ],
+                  padding: const EdgeInsets.fromLTRB(30, 60, 30, 20),
+                  child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
+                    stream: firestore.collection('drugs').snapshots(),
+                    builder: (context, snapshot) {
+                      if (!snapshot.hasData) {
+                        return const Center(
+                          child: CircularProgressIndicator(),
+                        );
+                      }
+
+                      var drugs = snapshot.data!.docs;
+
+                      return ListView(
+                        shrinkWrap: true,
+                        children: drugs
+                            .map((drug) => Dismissible(
+                                  onDismissed: (direction) =>
+                                      deleteDrug(drug.id, context),
+                                  key: Key(drug.id),
+                                  child: Container(
+                                    margin: const EdgeInsets.only(top: 20),
+                                    decoration: BoxDecoration(
+                                      borderRadius: BorderRadius.circular(12),
+                                      color: const Color.fromARGB(
+                                          255, 233, 233, 233),
+                                    ),
+                                    child: ListTile(
+                                      onTap: () {},
+                                      title: Text(drug['name']),
+                                    ),
+                                  ),
+                                ))
+                            .toList(),
+                      );
+                    },
                   ),
                 ),
               ),
@@ -66,6 +90,55 @@ class MedicineListPage extends StatelessWidget {
           ],
         ),
       ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+      floatingActionButton: SizedBox(
+        height: 80,
+        child: Container(
+          margin: const EdgeInsets.fromLTRB(35, 0, 35, 0),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFA076F9),
+                    fixedSize: const Size(60, 60),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50))),
+                child: const Icon(Icons.camera_alt),
+              ),
+              ElevatedButton(
+                onPressed: () {},
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFA076F9),
+                    fixedSize: const Size(60, 60),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50))),
+                child: const Icon(Icons.add),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
+  }
+
+  deleteDrug(String id, BuildContext context) async {
+    var response = await messaging.confirmYesNo(
+        "Tem certeza que deseja excluir?", context);
+
+    if (response == true) {
+      firestore.collection('drugs').doc(id).delete();
+      // ignore: use_build_context_synchronously
+      messaging.showSnackBar("medicamento excluido", context);
+    } else {
+      // ignore: use_build_context_synchronously
+      messaging.showSnackBar("operação cancelada", context);
+      // ignore: use_build_context_synchronously
+      Timer(const Duration(milliseconds: 500), () {
+        Navigator.pushReplacement(context,
+            MaterialPageRoute(builder: ((context) => MedicineListPage())));
+      });
+    }
   }
 }

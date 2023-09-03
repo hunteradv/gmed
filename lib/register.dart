@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:gmed/messaging.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -16,6 +17,7 @@ class _RegisterPageState extends State<RegisterPage> {
   TextEditingController confirmPasswordTxt = TextEditingController();
   TextEditingController emailTxt = TextEditingController();
   TextEditingController nameTxt = TextEditingController();
+  Messaging messaging = Messaging();
 
   FirebaseAuth auth = FirebaseAuth.instance;
 
@@ -33,71 +35,36 @@ class _RegisterPageState extends State<RegisterPage> {
     super.dispose();
   }
 
-  void showAlertDialog(message) {
-    showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Container(
-              alignment: Alignment.center,
-              child: const Text(
-                'erro',
-              ),
-            ),
-            content: SizedBox(
-              height: 150,
-              child: Column(
-                children: [
-                  Image.asset(
-                    'assets/images/warning.png',
-                    width: 100,
-                    height: 100,
-                  ),
-                  Text(message)
-                ],
-              ),
-            ),
-            actions: [
-              MaterialButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                },
-                child: Container(
-                    alignment: Alignment.center, child: const Text('ok')),
-              ),
-            ],
-          );
-        });
-  }
-
-  void confirm() async {
+  void confirm(context) async {
     if (emailTxt.value.text.isEmpty) {
-      showAlertDialog('e-mail não pode ser vazio');
+      messaging.showAlertDialog('e-mail não pode ser vazio', context);
       return;
     }
 
     if (passwordTxt.value.text.isEmpty) {
-      showAlertDialog('senha não pode ser vazia');
+      messaging.showAlertDialog('senha não pode ser vazia', context);
       return;
     }
 
     if (confirmPasswordTxt.value.text.isEmpty) {
-      showAlertDialog('confirmação de senha não pode ser vazia');
+      messaging.showAlertDialog(
+          'confirmação de senha não pode ser vazia', context);
       return;
     }
 
     if (passwordTxt.value.text != confirmPasswordTxt.value.text) {
-      showAlertDialog('senhas não podem ser diferentes');
+      messaging.showAlertDialog('senhas não podem ser diferentes', context);
       return;
     }
 
     if (passwordTxt.value.text.length < 6) {
-      showAlertDialog('senha precisa ter no mínimo 6 caracteres');
+      messaging.showAlertDialog(
+          'senha precisa ter no mínimo 6 caracteres', context);
       return;
     }
 
     if (nameTxt.value.text.isEmpty) {
-      showAlertDialog('nome não pode ser vazio');
+      messaging.showAlertDialog('nome não pode ser vazio', context);
       return;
     }
 
@@ -109,16 +76,16 @@ class _RegisterPageState extends State<RegisterPage> {
       Navigator.of(context).pushNamed('/login');
     } on Exception catch (e) {
       if (e.toString().contains('wrong-password')) {
-        showAlertDialog('senha incorreta');
+        messaging.showAlertDialog('senha incorreta', context);
         return;
       }
 
       if (e.toString().contains('email address is badly formatted')) {
-        showAlertDialog('e-mail inválido');
+        messaging.showAlertDialog('e-mail inválido', context);
         return;
       }
 
-      showAlertDialog(e.toString());
+      messaging.showAlertDialog(e.toString(), context);
       return;
     }
   }
@@ -303,7 +270,7 @@ class _RegisterPageState extends State<RegisterPage> {
                         height: 100,
                       ),
                       ElevatedButton(
-                        onPressed: () => confirm(),
+                        onPressed: () => confirm(context),
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA076F9),
                             fixedSize: const Size(240, 80)),
