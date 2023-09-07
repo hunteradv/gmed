@@ -1,16 +1,49 @@
 // ignore: file_names
 import 'dart:async';
-
+import 'dart:convert';
+import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'messaging.dart';
+import 'package:http/http.dart' as http;
+
+import 'model/drug.dart';
 
 // ignore: must_be_immutable
 class MedicineListPage extends StatelessWidget {
+  MedicineListPage({super.key});
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   Messaging messaging = Messaging();
 
-  MedicineListPage({super.key});
+  final GlobalKey<AutoCompleteTextFieldState<String>> autoCompleteKey =
+      GlobalKey();
+  final TextEditingController _controller = TextEditingController();
+  List<Drug> drugs = [];
+  List<Drug> distinctDrugs = [];
+
+  Future<List<Drug>> getDrug(filter) async {
+    drugs = [];
+    var url = "https://bula.vercel.app/pesquisar?nome=$filter";
+    var response = await http.get(Uri.parse(url));
+    Map<String, dynamic> jsonData = jsonDecode(response.body);
+    List<dynamic> data = jsonData["content"];
+
+    for (var drugInList in data) {
+      var drug = Drug(name: drugInList["nomeProduto"]);
+      drugs.add(drug);
+    }
+
+    distinctDrugs = drugs.fold([], (List<Drug> accumulator, Drug drug) {
+      if (!accumulator.any((existingDrug) =>
+          existingDrug.name.toLowerCase() == drug.name.toLowerCase())) {
+        accumulator.add(drug);
+      }
+      return accumulator;
+    });
+
+    return distinctDrugs;
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,6 +70,53 @@ class MedicineListPage extends StatelessWidget {
             ),
             const SizedBox(
               height: 10,
+            ),
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              margin: const EdgeInsets.fromLTRB(20, 0, 20, 15),
+              decoration: BoxDecoration(
+                  color: const Color(0xFFF5F5F5),
+                  borderRadius: BorderRadius.circular(20)),
+              child: TypeAheadField(
+                textFieldConfiguration: TextFieldConfiguration(
+                  controller: _controller,
+                  decoration: const InputDecoration(
+                      contentPadding: EdgeInsets.all(0),
+                      prefixIcon: Icon(
+                        Icons.search,
+                        color: Colors.black,
+                        size: 15,
+                      ),
+                      prefixIconConstraints:
+                          BoxConstraints(maxHeight: 20, minWidth: 25),
+                      border: InputBorder.none,
+                      hintText: "Buscar",
+                      hintStyle: TextStyle(color: Colors.grey)),
+                ),
+                itemBuilder: (context, itemData) {
+                  return ListTile(title: Text(itemData.toString()));
+                },
+                onSuggestionSelected: (suggestion) {
+                  Navigator.pushNamed(context, '/drugDetail', arguments: {
+                    'drug': distinctDrugs
+                        .where((element) => element.name == suggestion)
+                  });
+                },
+                suggestionsCallback: (pattern) async {
+                  var list = await getDrug(pattern);
+                  var strings = list.map((drug) => drug.name).toList();
+                  return strings;
+                },
+                noItemsFoundBuilder: (context) {
+                  return const Padding(
+                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    child: Text(
+                      "Nenhum resultado encontrado",
+                      style: TextStyle(fontSize: 15),
+                    ),
+                  );
+                },
+              ),
             ),
             Expanded(
               child: Container(
@@ -72,7 +152,7 @@ class MedicineListPage extends StatelessWidget {
                                     decoration: BoxDecoration(
                                       borderRadius: BorderRadius.circular(12),
                                       color: const Color.fromARGB(
-                                          255, 233, 233, 233),
+                                          255, 223, 194, 194),
                                     ),
                                     child: ListTile(
                                       onTap: () {},

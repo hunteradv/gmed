@@ -28,6 +28,8 @@ environment:
 # the latest version available on pub.dev. To see which dependencies have newer
 # versions available, run `flutter pub outdated`.
 dependencies:
+  autocomplete_textfield:
+  flutter_typeahead:
   flutter:
     sdk: flutter
 
@@ -37,6 +39,7 @@ dependencies:
   firebase_core:
   cloud_firestore:
   firebase_auth:
+  http:
 
 dev_dependencies:
   flutter_test:
