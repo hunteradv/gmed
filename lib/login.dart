@@ -53,7 +53,7 @@ class _LoginPageState extends State<LoginPage> {
           email: emailTxt.text, password: passwordTxt.text);
 
       // ignore: use_build_context_synchronously
-      Navigator.of(context).pushNamed('/medicineList');
+      Navigator.of(context).pushNamed('/drugList');
     } on Exception catch (e) {
       if (e.toString().contains('wrong-password')) {
         messaging.showAlertDialog('senha incorreta', context);

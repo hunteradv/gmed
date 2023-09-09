@@ -11,8 +11,8 @@ import 'package:http/http.dart' as http;
 import 'model/drug.dart';
 
 // ignore: must_be_immutable
-class MedicineListPage extends StatelessWidget {
-  MedicineListPage({super.key});
+class DrugListPage extends StatelessWidget {
+  DrugListPage({super.key});
   FirebaseFirestore firestore = FirebaseFirestore.instance;
   Messaging messaging = Messaging();
 
@@ -30,7 +30,9 @@ class MedicineListPage extends StatelessWidget {
     List<dynamic> data = jsonData["content"];
 
     for (var drugInList in data) {
-      var drug = Drug(name: drugInList["nomeProduto"]);
+      var drug = Drug(
+          name: drugInList["nomeProduto"],
+          leaflet: drugInList["idBulaPacienteProtegido"]);
       drugs.add(drug);
     }
 
@@ -90,17 +92,19 @@ class MedicineListPage extends StatelessWidget {
                       prefixIconConstraints:
                           BoxConstraints(maxHeight: 20, minWidth: 25),
                       border: InputBorder.none,
-                      hintText: "Buscar",
+                      hintText: "Adicionar",
                       hintStyle: TextStyle(color: Colors.grey)),
                 ),
                 itemBuilder: (context, itemData) {
                   return ListTile(title: Text(itemData.toString()));
                 },
                 onSuggestionSelected: (suggestion) {
-                  Navigator.pushNamed(context, '/drugDetail', arguments: {
-                    'drug': distinctDrugs
-                        .where((element) => element.name == suggestion)
-                  });
+                  var selectedDrug = distinctDrugs
+                      .where((element) => element.name == suggestion)
+                      .first;
+
+                  Navigator.pushNamed(context, '/drugDetail',
+                      arguments: {'drug': selectedDrug});
                 },
                 suggestionsCallback: (pattern) async {
                   var list = await getDrug(pattern);
@@ -216,8 +220,8 @@ class MedicineListPage extends StatelessWidget {
       messaging.showSnackBar("operação cancelada", context);
       // ignore: use_build_context_synchronously
       Timer(const Duration(milliseconds: 500), () {
-        Navigator.pushReplacement(context,
-            MaterialPageRoute(builder: ((context) => MedicineListPage())));
+        Navigator.pushReplacement(
+            context, MaterialPageRoute(builder: ((context) => DrugListPage())));
       });
     }
   }

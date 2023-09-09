@@ -1,7 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:gmed/login.dart';
-import 'package:gmed/medicineList.dart';
+import 'package:gmed/drugList.dart';
 import 'package:gmed/recoveryPassword.dart';
 import 'package:gmed/register.dart';
 import 'drugDetail.dart';
@@ -35,7 +35,7 @@ class MyApp extends StatelessWidget {
           '/register': (context) => const RegisterPage(),
           '/login': (context) => const LoginPage(),
           '/recoveryPassword': (context) => RecoveryPasswordPage(),
-          '/medicineList': (context) => MedicineListPage(),
+          '/drugList': (context) => DrugListPage(),
           '/drugDetail': (context) => DrugDetailPage()
         });
   }
