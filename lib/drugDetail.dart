@@ -12,11 +12,11 @@ class DrugDetailPage extends StatefulWidget {
 
 // ignore: must_be_immutable
 class _DrugDetailState extends State<DrugDetailPage> {
-  Drug drug = Drug(name: "");
-  Measure _selectedItem = Measure.none;
+  Drug? drug = Drug(name: "");
+  Measure? _selectedItem;
+  TextEditingController nameTxt = TextEditingController();
 
   final Map<Measure, String> measures = {
-    Measure.none: "nenhum",
     Measure.milliliter: 'mililitros',
     Measure.capsule: 'capsula',
     Measure.teaspoon: "colher de chá"
@@ -30,8 +30,9 @@ class _DrugDetailState extends State<DrugDetailPage> {
       drug = arguments['drug'];
     }
 
-    TextEditingController nameTxt = TextEditingController();
-    nameTxt.text = drug.name;
+    if (drug?.name != "") {
+      nameTxt.text = drug!.name;
+    }
 
     return Scaffold(
       body: Container(
@@ -109,18 +110,21 @@ class _DrugDetailState extends State<DrugDetailPage> {
                                 color: const Color(0xFF585858), width: 0.5)),
                         child: Column(children: [
                           DropdownButton(
+                              isExpanded: true,
                               value: _selectedItem,
+                              hint: const Text("unidade de medida"),
                               items: Measure.values.map((Measure value) {
                                 return DropdownMenuItem<Measure>(
                                   value: value,
                                   child: Text(measures[value]!),
                                 );
                               }).toList(),
-                              onChanged: (Measure? newValue) => {
-                                    setState(() {
-                                      _selectedItem = newValue!;
-                                    })
-                                  })
+                              onChanged: (Measure? newValue) {
+                                setState(() {
+                                  _selectedItem = newValue!;
+                                  nameTxt.text = nameTxt.text;
+                                });
+                              })
                         ]),
                       ),
                       const SizedBox(

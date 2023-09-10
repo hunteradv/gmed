@@ -1,2 +1,2 @@
 // ignore: file_names
-enum Measure { none, capsule, milliliter, teaspoon }
+enum Measure { capsule, milliliter, teaspoon }
