@@ -5,6 +5,7 @@ import 'package:gmed/drugList.dart';
 import 'package:gmed/recoveryPassword.dart';
 import 'package:gmed/register.dart';
 import 'drugDetail.dart';
+import 'drugReminderConfig.dart';
 import 'homePage.dart';
 
 const firebaseConfig = FirebaseOptions(
@@ -36,7 +37,8 @@ class MyApp extends StatelessWidget {
           '/login': (context) => const LoginPage(),
           '/recoveryPassword': (context) => RecoveryPasswordPage(),
           '/drugList': (context) => DrugListPage(),
-          '/drugDetail': (context) => DrugDetailPage()
+          '/drugDetail': (context) => const DrugDetailPage(),
+          '/drugReminderConfig': (context) => DrugReminderConfigPage()
         });
   }
 }

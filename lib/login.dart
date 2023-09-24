@@ -194,8 +194,7 @@ class _LoginPageState extends State<LoginPage> {
                             fixedSize: const Size(240, 80)),
                         child: const Text(
                           'confirmar',
-                          style: TextStyle(
-                              fontSize: 24, fontFamily: 'montserratLight'),
+                          style: TextStyle(fontSize: 24),
                         ),
                       ),
                     ],

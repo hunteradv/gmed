@@ -22,6 +22,19 @@ class DrugListPage extends StatelessWidget {
   List<Drug> drugs = [];
   List<Drug> distinctDrugs = [];
 
+  String removeDiacritics(String str) {
+    var withDia =
+        'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
+    var withoutDia =
+        'AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz';
+
+    for (int i = 0; i < withDia.length; i++) {
+      str = str.replaceAll(withDia[i], withoutDia[i]);
+    }
+
+    return str;
+  }
+
   Future<List<Drug>> getDrug(filter) async {
     drugs = [];
     var url = "https://bula.vercel.app/pesquisar?nome=$filter";
@@ -31,14 +44,15 @@ class DrugListPage extends StatelessWidget {
 
     for (var drugInList in data) {
       var drug = Drug(
-          name: drugInList["nomeProduto"],
+          name: drugInList["nomeProduto"].toString().toLowerCase(),
           leaflet: drugInList["idBulaPacienteProtegido"]);
       drugs.add(drug);
     }
 
     distinctDrugs = drugs.fold([], (List<Drug> accumulator, Drug drug) {
       if (!accumulator.any((existingDrug) =>
-          existingDrug.name.toLowerCase() == drug.name.toLowerCase())) {
+          removeDiacritics(existingDrug.name.toLowerCase()) ==
+          removeDiacritics(drug.name.toLowerCase()))) {
         accumulator.add(drug);
       }
       return accumulator;
@@ -100,7 +114,8 @@ class DrugListPage extends StatelessWidget {
                 },
                 onSuggestionSelected: (suggestion) {
                   var selectedDrug = distinctDrugs
-                      .where((element) => element.name == suggestion)
+                      .where(
+                          (element) => element.name.toLowerCase() == suggestion)
                       .first;
 
                   Navigator.pushNamed(context, '/drugDetail',
@@ -108,7 +123,8 @@ class DrugListPage extends StatelessWidget {
                 },
                 suggestionsCallback: (pattern) async {
                   var list = await getDrug(pattern);
-                  var strings = list.map((drug) => drug.name).toList();
+                  var strings =
+                      list.map((drug) => drug.name.toLowerCase()).toList();
                   return strings;
                 },
                 noItemsFoundBuilder: (context) {
@@ -180,7 +196,7 @@ class DrugListPage extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.fromLTRB(35, 0, 35, 0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
               ElevatedButton(
                 onPressed: () {},
@@ -190,15 +206,6 @@ class DrugListPage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                         borderRadius: BorderRadius.circular(50))),
                 child: const Icon(Icons.camera_alt),
-              ),
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFA076F9),
-                    fixedSize: const Size(60, 60),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50))),
-                child: const Icon(Icons.add),
               ),
             ],
           ),

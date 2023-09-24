@@ -15,6 +15,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
   Drug? drug = Drug(name: "");
   Measure? _selectedItem;
   TextEditingController nameTxt = TextEditingController();
+  TextEditingController noteTxt = TextEditingController();
 
   final Map<Measure, String> measures = {
     Measure.milliliter: 'mililitros',
@@ -84,19 +85,17 @@ class _DrugDetailState extends State<DrugDetailPage> {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                                 color: const Color(0xFF585858), width: 0.5)),
-                        child: Column(children: [
-                          Container(
-                            padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
-                            child: TextField(
-                                controller: nameTxt,
-                                decoration: const InputDecoration(
-                                    hintText: 'nome',
-                                    hintStyle: TextStyle(
-                                        fontFamily: 'montserratLight',
-                                        color: Colors.grey),
-                                    border: InputBorder.none)),
-                          )
-                        ]),
+                        child: Container(
+                          padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
+                          child: TextField(
+                              controller: nameTxt,
+                              decoration: const InputDecoration(
+                                  hintText: 'nome',
+                                  hintStyle: TextStyle(
+                                      fontFamily: 'montserratLight',
+                                      color: Colors.grey),
+                                  border: InputBorder.none)),
+                        ),
                       ),
                       const SizedBox(
                         height: 20,
@@ -108,33 +107,69 @@ class _DrugDetailState extends State<DrugDetailPage> {
                             borderRadius: BorderRadius.circular(10),
                             border: Border.all(
                                 color: const Color(0xFF585858), width: 0.5)),
-                        child: Column(children: [
-                          DropdownButton(
-                              isExpanded: true,
-                              value: _selectedItem,
-                              hint: const Text("unidade de medida"),
-                              items: Measure.values.map((Measure value) {
-                                return DropdownMenuItem<Measure>(
-                                  value: value,
-                                  child: Text(measures[value]!),
-                                );
-                              }).toList(),
-                              onChanged: (Measure? newValue) {
-                                setState(() {
-                                  _selectedItem = newValue!;
-                                  nameTxt.text = nameTxt.text;
-                                });
-                              })
-                        ]),
+                        child: DropdownButton(
+                            padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+                            isExpanded: true,
+                            value: _selectedItem,
+                            underline: Container(),
+                            hint: const Text("unidade de medida"),
+                            items: Measure.values.map((Measure value) {
+                              return DropdownMenuItem<Measure>(
+                                value: value,
+                                child: Text(measures[value]!),
+                              );
+                            }).toList(),
+                            onChanged: (Measure? newValue) {
+                              setState(() {
+                                _selectedItem = newValue!;
+                                nameTxt.text = nameTxt.text;
+                              });
+                            }),
+                      ),
+                      const SizedBox(height: 30),
+                      SizedBox(
+                        height: 50,
+                        width: 300,
+                        child: ElevatedButton(
+                          style: ElevatedButton.styleFrom(
+                              backgroundColor: const Color(0xFF63D5FF)),
+                          onPressed: () {
+                            Navigator.pushNamed(context, "/drugReminderConfig");
+                          },
+                          child: const Text(
+                            "configurar frequência",
+                            style: TextStyle(fontSize: 15),
+                          ),
+                        ),
                       ),
                       const SizedBox(
-                        height: 100,
+                        height: 50,
+                      ),
+                      Container(
+                        margin: const EdgeInsets.fromLTRB(40, 0, 40, 0),
+                        decoration: BoxDecoration(
+                            color: const Color(0xFFF5F5F5),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                                color: const Color(0xFF585858), width: 0.5)),
+                        child: TextField(
+                          controller: noteTxt,
+                          maxLines: 10,
+                          decoration: const InputDecoration(
+                              contentPadding: EdgeInsets.fromLTRB(12, 10, 0, 0),
+                              border: InputBorder.none,
+                              hintText: "Observações",
+                              hintStyle: TextStyle(fontSize: 15)),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 50,
                       ),
                       ElevatedButton(
                         onPressed: () => {},
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA076F9),
-                            fixedSize: const Size(240, 80)),
+                            fixedSize: const Size(240, 70)),
                         child: const Text(
                           'confirmar',
                           style: TextStyle(
