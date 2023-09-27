@@ -1,9 +1,12 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:gmed/login.dart';
 import 'package:gmed/drugList.dart';
 import 'package:gmed/recoveryPassword.dart';
 import 'package:gmed/register.dart';
+import 'package:intl/date_symbol_data_file.dart';
+import 'package:intl/intl.dart';
 import 'drugDetail.dart';
 import 'drugReminderConfig.dart';
 import 'homePage.dart';
@@ -28,17 +31,23 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-        theme: ThemeData(fontFamily: 'montserratLight'),
-        debugShowCheckedModeBanner: false,
-        initialRoute: '/homepage',
-        routes: {
-          '/homepage': (context) => const HomePage(),
-          '/register': (context) => const RegisterPage(),
-          '/login': (context) => const LoginPage(),
-          '/recoveryPassword': (context) => RecoveryPasswordPage(),
-          '/drugList': (context) => DrugListPage(),
-          '/drugDetail': (context) => const DrugDetailPage(),
-          '/drugReminderConfig': (context) => DrugReminderConfigPage()
-        });
+      theme: ThemeData(fontFamily: 'montserratLight'),
+      debugShowCheckedModeBanner: false,
+      initialRoute: '/homepage',
+      routes: {
+        '/homepage': (context) => const HomePage(),
+        '/register': (context) => const RegisterPage(),
+        '/login': (context) => const LoginPage(),
+        '/recoveryPassword': (context) => RecoveryPasswordPage(),
+        '/drugList': (context) => DrugListPage(),
+        '/drugDetail': (context) => const DrugDetailPage(),
+        '/drugReminderConfig': (context) => DrugReminderConfigPage()
+      },
+      localizationsDelegates: const [
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate
+      ],
+      supportedLocales: const [Locale('pt', 'BR')],
+    );
   }
 }
