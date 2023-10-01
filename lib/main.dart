@@ -1,6 +1,7 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:gmed/drugSchedulerConfig.dart';
 import 'package:gmed/login.dart';
 import 'package:gmed/drugList.dart';
 import 'package:gmed/recoveryPassword.dart';
@@ -39,7 +40,8 @@ class MyApp extends StatelessWidget {
         '/recoveryPassword': (context) => RecoveryPasswordPage(),
         '/drugList': (context) => DrugListPage(),
         '/drugDetail': (context) => const DrugDetailPage(),
-        '/drugReminderConfig': (context) => DrugReminderConfigPage()
+        '/drugReminderConfig': (context) => const DrugReminderConfigPage(),
+        "/drugSchedulerConfig": (context) => const DrugSchedulerConfigPage()
       },
       localizationsDelegates: const [
         GlobalMaterialLocalizations.delegate,

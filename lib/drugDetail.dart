@@ -1,4 +1,6 @@
 // ignore: file_names
+import 'dart:js_interop';
+
 import 'package:flutter/material.dart';
 import 'model/drug.dart';
 import 'model/measure.dart';
@@ -13,6 +15,9 @@ class DrugDetailPage extends StatefulWidget {
 // ignore: must_be_immutable
 class _DrugDetailState extends State<DrugDetailPage> {
   Drug? drug = Drug(name: "");
+  late DateTime? dateFirst;
+  late DateTime? dateLast;
+  late int? selectedOption;
   Measure? _selectedItem;
   TextEditingController nameTxt = TextEditingController();
   TextEditingController noteTxt = TextEditingController();
@@ -31,7 +36,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
       drug = arguments['drug'];
     }
 
-    if (drug?.name != "") {
+    if (drug.isDefinedAndNotNull && drug!.name.isNotEmpty) {
       nameTxt.text = drug!.name;
     }
 
@@ -133,8 +138,8 @@ class _DrugDetailState extends State<DrugDetailPage> {
                         child: ElevatedButton(
                           style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF63D5FF)),
-                          onPressed: () {
-                            Navigator.pushNamed(context, "/drugReminderConfig");
+                          onPressed: () async {
+                            await pushReminderConfig(context);
                           },
                           child: const Text(
                             "configurar frequência",
@@ -185,5 +190,15 @@ class _DrugDetailState extends State<DrugDetailPage> {
         ),
       ),
     );
+  }
+
+  Future<void> pushReminderConfig(BuildContext context) async {
+    var result = await Navigator.pushNamed(context, "/drugReminderConfig");
+
+    if (result.isDefinedAndNotNull && result is Map<String, dynamic>) {
+      selectedOption = result["optionSelected"];
+      dateFirst = result["dateFirst"];
+      dateLast = result["dateLast"];
+    }
   }
 }

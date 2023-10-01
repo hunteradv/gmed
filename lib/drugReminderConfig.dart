@@ -1,6 +1,10 @@
 // ignore: file_names
+import 'dart:js_interop';
+
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+
+import 'messaging.dart';
 
 class DrugReminderConfigPage extends StatefulWidget {
   const DrugReminderConfigPage({super.key});
@@ -18,6 +22,7 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
   var dateFormat = DateFormat("dd/MM/yyyy");
   var showDateButtons = true;
   var optionSelected = 1;
+  Messaging messaging = Messaging();
 
   Future<void> _selectDateFirst(BuildContext context) async {
     var pickedDate = await showDatePicker(
@@ -236,7 +241,9 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
                         height: 200,
                       ),
                       ElevatedButton(
-                        onPressed: () => {Navigator.pushNamed(context, "/")},
+                        onPressed: () {
+                          confirm();
+                        },
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA076F9),
                             fixedSize: const Size(240, 70)),
@@ -273,5 +280,25 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
         showDateButtons = false;
       });
     }
+  }
+
+  confirm() {
+    if (optionSelected == 2) {
+      Navigator.pop(
+          context, <String, dynamic>{"optionSelected": optionSelected});
+      return;
+    }
+
+    if (dateFirst.isUndefinedOrNull || dateLast.isUndefinedOrNull) {
+      messaging.showAlertDialog("obrigatório inserir", context);
+      return;
+    }
+
+    Navigator.pop(context, <String, dynamic>{
+      "optionSelected": optionSelected,
+      "dateFirst": dateFirst,
+      "dateLast": dateLast
+    });
+    return;
   }
 }
