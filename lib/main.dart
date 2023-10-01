@@ -5,8 +5,6 @@ import 'package:gmed/login.dart';
 import 'package:gmed/drugList.dart';
 import 'package:gmed/recoveryPassword.dart';
 import 'package:gmed/register.dart';
-import 'package:intl/date_symbol_data_file.dart';
-import 'package:intl/intl.dart';
 import 'drugDetail.dart';
 import 'drugReminderConfig.dart';
 import 'homePage.dart';

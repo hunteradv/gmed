@@ -236,7 +236,7 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
                         height: 200,
                       ),
                       ElevatedButton(
-                        onPressed: () => {},
+                        onPressed: () => {Navigator.pushNamed(context, "/")},
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA076F9),
                             fixedSize: const Size(240, 70)),
