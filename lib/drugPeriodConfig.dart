@@ -6,22 +6,18 @@ import 'package:intl/intl.dart';
 
 import 'messaging.dart';
 
-class DrugReminderConfigPage extends StatefulWidget {
-  const DrugReminderConfigPage({super.key});
+class DrugPeriodConfigPage extends StatefulWidget {
+  const DrugPeriodConfigPage({super.key});
 
   @override
-  State<DrugReminderConfigPage> createState() => _DrugReminderConfigState();
+  State<DrugPeriodConfigPage> createState() => _DrugPeriodConfigState();
 }
 
-class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
+class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
   var byPeriod = true;
-  var buttonByPeriod = const Color(0xFFA076F9);
-  var buttonForLife = const Color(0xFFFFFFFF);
   var dateFirst = DateTime.now();
   var dateLast = DateTime.now().add(const Duration(days: 1));
   var dateFormat = DateFormat("dd/MM/yyyy");
-  var showDateButtons = true;
-  var optionSelected = 1;
   Messaging messaging = Messaging();
 
   Future<void> _selectDateFirst(BuildContext context) async {
@@ -69,7 +65,7 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
               child: Column(
                 children: [
                   Text(
-                    "frequência",
+                    "período",
                     style: TextStyle(
                         color: Colors.white,
                         fontSize: 30,
@@ -99,62 +95,14 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
                         width: double.infinity,
                       ),
                       const Text(
-                        "qual é a frequência de consumo?",
+                        "qual é o período de consumo?",
                         style: TextStyle(fontSize: 20),
                       ),
                       const SizedBox(
                         height: 20,
                       ),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 200,
-                            height: 50,
-                            margin: const EdgeInsets.only(right: 2),
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: buttonByPeriod, blurRadius: 15)
-                                ]),
-                            child: ElevatedButton(
-                              style: ElevatedButton.styleFrom(
-                                  backgroundColor: const Color(0xFFF5F5F5)),
-                              onPressed: () {
-                                selectButton(1);
-                              },
-                              child: const Text(
-                                "por período",
-                                style: TextStyle(color: Color(0xFF585858)),
-                              ),
-                            ),
-                          ),
-                          Container(
-                            width: 200,
-                            height: 50,
-                            decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
-                                boxShadow: [
-                                  BoxShadow(
-                                      color: buttonForLife, blurRadius: 15)
-                                ]),
-                            child: ElevatedButton(
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFFF5F5F5)),
-                                onPressed: () {
-                                  selectButton(2);
-                                },
-                                child: const Text(
-                                  "indeterminado",
-                                  style: TextStyle(color: Color(0xFF585858)),
-                                )),
-                          ),
-                        ],
-                      ),
                       const SizedBox(height: 30),
                       Visibility(
-                        visible: showDateButtons,
                         child: Row(
                           mainAxisAlignment: MainAxisAlignment.spaceAround,
                           children: [
@@ -238,7 +186,7 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
                         ),
                       ),
                       const SizedBox(
-                        height: 200,
+                        height: 150,
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -264,41 +212,20 @@ class _DrugReminderConfigState extends State<DrugReminderConfigPage> {
     );
   }
 
-  selectButton(option) {
-    if (option == 1) {
-      optionSelected = 1;
-      setState(() {
-        buttonByPeriod = const Color(0xFFA076F9);
-        buttonForLife = const Color(0xFFFFFFFF);
-        showDateButtons = true;
-      });
-    } else {
-      optionSelected = 2;
-      setState(() {
-        buttonByPeriod = const Color(0xFFFFFFFF);
-        buttonForLife = const Color(0xFFA076F9);
-        showDateButtons = false;
-      });
-    }
-  }
-
   confirm() {
-    if (optionSelected == 2) {
-      Navigator.pop(
-          context, <String, dynamic>{"optionSelected": optionSelected});
-      return;
-    }
-
     if (dateFirst.isUndefinedOrNull || dateLast.isUndefinedOrNull) {
-      messaging.showAlertDialog("obrigatório inserir", context);
+      messaging.showAlertDialog("obrigatório inserir as datas", context);
       return;
     }
 
-    Navigator.pop(context, <String, dynamic>{
-      "optionSelected": optionSelected,
-      "dateFirst": dateFirst,
-      "dateLast": dateLast
-    });
+    if (dateFirst.isAfter(dateLast)) {
+      messaging.showAlertDialog(
+          "a data inicial não pode ser maior que a data final", context);
+      return;
+    }
+
+    Navigator.pop(context,
+        <String, dynamic>{"dateFirst": dateFirst, "dateLast": dateLast});
     return;
   }
 }

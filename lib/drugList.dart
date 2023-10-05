@@ -1,6 +1,7 @@
 // ignore: file_names
 import 'dart:async';
 import 'dart:convert';
+import 'dart:html';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +10,7 @@ import 'messaging.dart';
 import 'package:http/http.dart' as http;
 
 import 'model/drug.dart';
+import 'model/drugDto.dart';
 
 // ignore: must_be_immutable
 class DrugListPage extends StatelessWidget {
@@ -19,8 +21,8 @@ class DrugListPage extends StatelessWidget {
   final GlobalKey<AutoCompleteTextFieldState<String>> autoCompleteKey =
       GlobalKey();
   final TextEditingController _controller = TextEditingController();
-  List<Drug> drugs = [];
-  List<Drug> distinctDrugs = [];
+  List<DrugDto> drugs = [];
+  List<DrugDto> distinctDrugs = [];
 
   String removeDiacritics(String str) {
     var withDia =
@@ -35,7 +37,7 @@ class DrugListPage extends StatelessWidget {
     return str;
   }
 
-  Future<List<Drug>> getDrug(filter) async {
+  Future<List<DrugDto>> getDrug(filter) async {
     drugs = [];
     var url = "https://bula.vercel.app/pesquisar?nome=$filter";
     var response = await http.get(Uri.parse(url));
@@ -43,13 +45,13 @@ class DrugListPage extends StatelessWidget {
     List<dynamic> data = jsonData["content"];
 
     for (var drugInList in data) {
-      var drug = Drug(
+      var drug = DrugDto(
           name: drugInList["nomeProduto"].toString().toLowerCase(),
           leaflet: drugInList["idBulaPacienteProtegido"]);
       drugs.add(drug);
     }
 
-    distinctDrugs = drugs.fold([], (List<Drug> accumulator, Drug drug) {
+    distinctDrugs = drugs.fold([], (List<DrugDto> accumulator, DrugDto drug) {
       if (!accumulator.any((existingDrug) =>
           removeDiacritics(existingDrug.name.toLowerCase()) ==
           removeDiacritics(drug.name.toLowerCase()))) {
@@ -160,27 +162,107 @@ class DrugListPage extends StatelessWidget {
 
                       var drugs = snapshot.data!.docs;
 
-                      return ListView(
-                        shrinkWrap: true,
-                        children: drugs
-                            .map((drug) => Dismissible(
-                                  onDismissed: (direction) =>
-                                      deleteDrug(drug.id, context),
-                                  key: Key(drug.id),
-                                  child: Container(
-                                    margin: const EdgeInsets.only(top: 20),
-                                    decoration: BoxDecoration(
-                                      borderRadius: BorderRadius.circular(12),
-                                      color: const Color.fromARGB(
-                                          255, 223, 194, 194),
-                                    ),
-                                    child: ListTile(
-                                      onTap: () {},
-                                      title: Text(drug['name']),
-                                    ),
+                      return Column(
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        mainAxisAlignment: MainAxisAlignment.start,
+                        children: [
+                          Expanded(
+                            child: Container(
+                              child: Column(
+                                children: [
+                                  const Text("não tomados",
+                                      style: TextStyle(fontSize: 20)),
+                                  ListView(
+                                    shrinkWrap: true,
+                                    children: drugs
+                                        .where((drug) {
+                                          bool taken = drug.data()['taken'];
+                                          return !taken;
+                                        })
+                                        .map((drug) => Dismissible(
+                                              onDismissed: (direction) =>
+                                                  deleteDrug(drug.id, context),
+                                              key: Key(drug.id),
+                                              child: Card(
+                                                elevation: 5,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                margin: const EdgeInsets.only(
+                                                    top: 20),
+                                                child: ListTile(
+                                                  onTap: () {},
+                                                  title: Text(
+                                                      drug['name'].length <= 30
+                                                          ? drug['name']
+                                                          : drug['name']
+                                                                  .substring(
+                                                                      0, 30) +
+                                                              '...'),
+                                                  trailing: Checkbox(
+                                                    onChanged: (bool? value) =>
+                                                        setTaken(drug.id),
+                                                    value: drug['taken'],
+                                                  ),
+                                                ),
+                                              ),
+                                            ))
+                                        .toList(),
                                   ),
-                                ))
-                            .toList(),
+                                ],
+                              ),
+                            ),
+                          ),
+                          Expanded(
+                            child: Container(
+                              child: Column(
+                                children: [
+                                  const Text("tomados",
+                                      style: TextStyle(fontSize: 20)),
+                                  ListView(
+                                    shrinkWrap: true,
+                                    children: drugs
+                                        .where((drug) {
+                                          bool taken = drug.data()['taken'];
+                                          return taken;
+                                        })
+                                        .map((drug) => Dismissible(
+                                              onDismissed: (direction) =>
+                                                  deleteDrug(drug.id, context),
+                                              key: Key(drug.id),
+                                              child: Card(
+                                                elevation: 5,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(12),
+                                                ),
+                                                margin: const EdgeInsets.only(
+                                                    top: 20),
+                                                child: ListTile(
+                                                  onTap: () {},
+                                                  title: Text(
+                                                      drug['name'].length <= 30
+                                                          ? drug['name']
+                                                          : drug['name']
+                                                                  .substring(
+                                                                      0, 30) +
+                                                              '...'),
+                                                  trailing: Checkbox(
+                                                    onChanged: (bool? value) =>
+                                                        {},
+                                                    value: drug["taken"],
+                                                  ),
+                                                ),
+                                              ),
+                                            ))
+                                        .toList(),
+                                  )
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     },
                   ),
@@ -225,11 +307,14 @@ class DrugListPage extends StatelessWidget {
     } else {
       // ignore: use_build_context_synchronously
       messaging.showSnackBar("operação cancelada", context);
-      // ignore: use_build_context_synchronously
       Timer(const Duration(milliseconds: 500), () {
         Navigator.pushReplacement(
             context, MaterialPageRoute(builder: ((context) => DrugListPage())));
       });
     }
+  }
+
+  void setTaken(id) {
+    firestore.collection('drugs').doc(id).update({'taken': true});
   }
 }

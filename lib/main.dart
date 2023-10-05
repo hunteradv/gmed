@@ -7,7 +7,7 @@ import 'package:gmed/drugList.dart';
 import 'package:gmed/recoveryPassword.dart';
 import 'package:gmed/register.dart';
 import 'drugDetail.dart';
-import 'drugReminderConfig.dart';
+import 'drugPeriodConfig.dart';
 import 'homePage.dart';
 
 const firebaseConfig = FirebaseOptions(
@@ -40,7 +40,7 @@ class MyApp extends StatelessWidget {
         '/recoveryPassword': (context) => RecoveryPasswordPage(),
         '/drugList': (context) => DrugListPage(),
         '/drugDetail': (context) => const DrugDetailPage(),
-        '/drugReminderConfig': (context) => const DrugReminderConfigPage(),
+        '/drugPeriodConfig': (context) => const DrugPeriodConfigPage(),
         "/drugSchedulerConfig": (context) => const DrugSchedulerConfigPage()
       },
       localizationsDelegates: const [

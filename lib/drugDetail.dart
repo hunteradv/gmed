@@ -1,8 +1,9 @@
 // ignore: file_names
 import 'dart:js_interop';
-
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
-import 'model/drug.dart';
+import 'package:gmed/messaging.dart';
+import 'model/drugDto.dart';
 import 'model/measure.dart';
 
 class DrugDetailPage extends StatefulWidget {
@@ -14,13 +15,15 @@ class DrugDetailPage extends StatefulWidget {
 
 // ignore: must_be_immutable
 class _DrugDetailState extends State<DrugDetailPage> {
-  Drug? drug = Drug(name: "");
-  late DateTime? dateFirst;
-  late DateTime? dateLast;
-  late int? selectedOption;
-  Measure? _selectedItem;
+  FirebaseFirestore firestore = FirebaseFirestore.instance;
+  DrugDto? drug = DrugDto(name: "", leaflet: "");
+  DateTime? dateFirst;
+  DateTime? dateLast;
+  Measure? _selectedMeasure;
   TextEditingController nameTxt = TextEditingController();
   TextEditingController noteTxt = TextEditingController();
+  Messaging messaging = Messaging();
+  String? leaflet;
 
   final Map<Measure, String> measures = {
     Measure.milliliter: 'mililitros',
@@ -38,6 +41,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
 
     if (drug.isDefinedAndNotNull && drug!.name.isNotEmpty) {
       nameTxt.text = drug!.name;
+      leaflet = drug!.leaflet;
     }
 
     return Scaffold(
@@ -115,7 +119,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
                         child: DropdownButton(
                             padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
                             isExpanded: true,
-                            value: _selectedItem,
+                            value: _selectedMeasure,
                             underline: Container(),
                             hint: const Text("unidade de medida"),
                             items: Measure.values.map((Measure value) {
@@ -126,7 +130,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
                             }).toList(),
                             onChanged: (Measure? newValue) {
                               setState(() {
-                                _selectedItem = newValue!;
+                                _selectedMeasure = newValue!;
                                 nameTxt.text = nameTxt.text;
                               });
                             }),
@@ -139,7 +143,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
                           style: ElevatedButton.styleFrom(
                               backgroundColor: const Color(0xFF63D5FF)),
                           onPressed: () async {
-                            await pushReminderConfig(context);
+                            await pushToPeriodConfig(context);
                           },
                           child: const Text(
                             "configurar frequência",
@@ -171,7 +175,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
                         height: 50,
                       ),
                       ElevatedButton(
-                        onPressed: () => {},
+                        onPressed: () => {confirm(context)},
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA076F9),
                             fixedSize: const Size(240, 70)),
@@ -192,13 +196,49 @@ class _DrugDetailState extends State<DrugDetailPage> {
     );
   }
 
-  Future<void> pushReminderConfig(BuildContext context) async {
-    var result = await Navigator.pushNamed(context, "/drugReminderConfig");
+  Future<void> pushToPeriodConfig(BuildContext context) async {
+    var result = await Navigator.pushNamed(context, "/drugPeriodConfig");
 
     if (result.isDefinedAndNotNull && result is Map<String, dynamic>) {
-      selectedOption = result["optionSelected"];
       dateFirst = result["dateFirst"];
       dateLast = result["dateLast"];
+    }
+  }
+
+  confirm(context) {
+    if (nameTxt.text.isUndefinedOrNull || nameTxt.text.isEmpty) {
+      messaging.showAlertDialog("é obrigatório definir um nome", context);
+    }
+
+    if ((dateFirst.isUndefinedOrNull || dateLast.isUndefinedOrNull)) {
+      messaging.showAlertDialog(
+          "é obrigatório selecionar o período na tela de período", context);
+      return;
+    }
+
+    if (_selectedMeasure.isUndefinedOrNull) {
+      messaging.showAlertDialog(
+          "é obrigatório selecionar a unidade de medida", context);
+      return;
+    }
+
+    var measure = _selectedMeasure!.index;
+
+    var drug = <String, dynamic>{
+      "name": nameTxt.text,
+      "initialDate": dateFirst,
+      "finaldate": dateLast,
+      "leaflet": leaflet ?? "",
+      "measure": measure,
+      "taken": false
+    };
+
+    try {
+      firestore.collection("drugs").add(drug);
+      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
+      messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
+    } on Exception catch (ex) {
+      messaging.showAlertDialog(ex.toString(), context);
     }
   }
 }
