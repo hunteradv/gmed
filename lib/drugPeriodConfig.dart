@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'messaging.dart';
+import 'model/drugDto.dart';
 
 class DrugPeriodConfigPage extends StatefulWidget {
   const DrugPeriodConfigPage({super.key});
@@ -19,6 +20,7 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
   var dateLast = DateTime.now().add(const Duration(days: 1));
   var dateFormat = DateFormat("dd/MM/yyyy");
   Messaging messaging = Messaging();
+  late DrugDto drug;
 
   Future<void> _selectDateFirst(BuildContext context) async {
     var pickedDate = await showDatePicker(
@@ -50,6 +52,12 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic>? arguments =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null) {
+      drug = arguments['drug'];
+    }
+
     return Scaffold(
       body: Container(
         color: const Color(0xFFA076F9),
@@ -168,23 +176,6 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
                           ],
                         ),
                       ),
-                      const SizedBox(height: 60),
-                      SizedBox(
-                        height: 50,
-                        width: 300,
-                        child: ElevatedButton(
-                          style: ElevatedButton.styleFrom(
-                              backgroundColor: const Color(0xFF63D5FF)),
-                          onPressed: () {
-                            Navigator.pushNamed(
-                                context, "/drugSchedulerConfig");
-                          },
-                          child: const Text(
-                            "configurar horários",
-                            style: TextStyle(fontSize: 15),
-                          ),
-                        ),
-                      ),
                       const SizedBox(
                         height: 150,
                       ),
@@ -196,7 +187,7 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
                             backgroundColor: const Color(0xFFA076F9),
                             fixedSize: const Size(240, 70)),
                         child: const Text(
-                          'confirmar',
+                          'seguir',
                           style: TextStyle(
                               fontSize: 24, fontFamily: 'montserratLight'),
                         ),
@@ -224,8 +215,10 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
       return;
     }
 
-    Navigator.pop(context,
-        <String, dynamic>{"dateFirst": dateFirst, "dateLast": dateLast});
-    return;
+    drug.initialDate = dateFirst;
+    drug.finalDate = dateLast;
+
+    Navigator.pushNamed(context, "/drugSchedulerConfig",
+        arguments: {'drug': drug});
   }
 }

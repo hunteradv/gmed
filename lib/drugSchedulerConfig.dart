@@ -1,5 +1,11 @@
-// ignore: file_names
+import 'dart:js_interop';
 import 'package:flutter/material.dart';
+import 'package:gmed/messaging.dart';
+import 'package:gmed/model/measure.dart';
+import 'package:gmed/repository/drugRepository.dart';
+import 'package:gmed/repository/drugSchedulerRepository.dart';
+import 'model/drug.dart';
+import 'model/drugDto.dart';
 
 class DrugSchedulerConfigPage extends StatefulWidget {
   const DrugSchedulerConfigPage({super.key});
@@ -11,9 +17,20 @@ class DrugSchedulerConfigPage extends StatefulWidget {
 class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   var scheduler = <TimeOfDay>[];
   var quantityControllers = <TextEditingController>[];
+  List schedulerQuantityList = [];
+  var drug = DrugDto();
+  var messaging = Messaging();
+  var drugRepository = DrugRepository();
+  var drugSchedulerRepository = DrugSchedulerRepository();
 
   @override
   Widget build(BuildContext context) {
+    Map<String, dynamic>? arguments =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null) {
+      drug = arguments['drug'];
+    }
+
     return Scaffold(
       body: Container(
         color: const Color(0xFFA076F9),
@@ -106,6 +123,11 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                           setState(() {
                                             scheduler.remove(hour);
                                             scheduler.add(selectedTime!);
+                                            schedulerQuantityList.add({
+                                              "hour": hour,
+                                              "quantity":
+                                                  quantityController.text
+                                            });
                                           });
                                         },
                                         child: Text(
@@ -180,7 +202,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                       ),
                       ElevatedButton(
                         onPressed: () {
-                          confirm();
+                          confirm(context);
                         },
                         style: ElevatedButton.styleFrom(
                             backgroundColor: const Color(0xFFA076F9),
@@ -202,5 +224,35 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
     );
   }
 
-  void confirm() {}
+  void confirm(context) async {
+    if (scheduler.isEmpty) {
+      messaging.showAlertDialog(
+          "é necessário adicionar no mínimo 1 horário para lembrete", context);
+    }
+
+    var confirmedDrug = Drug(
+        name: drug.name ?? "",
+        leaflet: drug.leaflet,
+        measure: drug.measure ?? Measure.capsule,
+        initialDate: drug.initialDate ?? DateTime.now(),
+        finaldate:
+            drug.finalDate ?? DateTime.now().add(const Duration(days: 1)),
+        note: drug.note);
+
+    var dateList = <DateTime>[];
+
+    for (DateTime date = confirmedDrug.initialDate;
+        date.isBefore(confirmedDrug.finaldate) ||
+            date.isAtSameMomentAs(confirmedDrug.finaldate);
+        date = date.add(const Duration(days: 1))) {
+      dateList.add(date);
+    }
+
+    var drugId = await drugRepository.addDrug(confirmedDrug, context);
+    drugSchedulerRepository.addDrugSchedule(
+        drugId, dateList, schedulerQuantityList, context);
+
+    Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
+    messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
+  }
 }

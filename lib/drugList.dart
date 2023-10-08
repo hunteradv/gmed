@@ -4,6 +4,7 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:gmed/repository/drugRepository.dart';
 import 'messaging.dart';
 import 'package:http/http.dart' as http;
 import 'model/drugDto.dart';
@@ -11,12 +12,13 @@ import 'model/drugDto.dart';
 // ignore: must_be_immutable
 class DrugListPage extends StatelessWidget {
   DrugListPage({super.key});
-  FirebaseFirestore firestore = FirebaseFirestore.instance;
-  Messaging messaging = Messaging();
+  var firestore = FirebaseFirestore.instance;
+  var messaging = Messaging();
 
   final GlobalKey<AutoCompleteTextFieldState<String>> autoCompleteKey =
       GlobalKey();
-  final TextEditingController _controller = TextEditingController();
+  final _controller = TextEditingController();
+  var repository = DrugRepository();
   List<DrugDto> drugs = [];
   List<DrugDto> distinctDrugs = [];
 
@@ -49,8 +51,8 @@ class DrugListPage extends StatelessWidget {
 
     distinctDrugs = drugs.fold([], (List<DrugDto> accumulator, DrugDto drug) {
       if (!accumulator.any((existingDrug) =>
-          removeDiacritics(existingDrug.name.toLowerCase()) ==
-          removeDiacritics(drug.name.toLowerCase()))) {
+          removeDiacritics((existingDrug.name ?? "").toLowerCase()) ==
+          removeDiacritics((drug.name ?? "").toLowerCase()))) {
         accumulator.add(drug);
       }
       return accumulator;
@@ -112,8 +114,8 @@ class DrugListPage extends StatelessWidget {
                 },
                 onSuggestionSelected: (suggestion) {
                   var selectedDrug = distinctDrugs
-                      .where(
-                          (element) => element.name.toLowerCase() == suggestion)
+                      .where((element) =>
+                          element.name!.toLowerCase() == suggestion)
                       .first;
 
                   Navigator.pushNamed(context, '/drugDetail',
@@ -122,7 +124,7 @@ class DrugListPage extends StatelessWidget {
                 suggestionsCallback: (pattern) async {
                   var list = await getDrug(pattern);
                   var strings =
-                      list.map((drug) => drug.name.toLowerCase()).toList();
+                      list.map((drug) => drug.name!.toLowerCase()).toList();
                   return strings;
                 },
                 noItemsFoundBuilder: (context) {
@@ -293,7 +295,8 @@ class DrugListPage extends StatelessWidget {
         "Tem certeza que deseja excluir?", context);
 
     if (response == true) {
-      firestore.collection('drugs').doc(id).delete();
+      // ignore: use_build_context_synchronously
+      repository.deleteDrug(id, context);
       // ignore: use_build_context_synchronously
       messaging.showSnackBar("medicamento excluido", context);
     } else {

@@ -1,7 +1,19 @@
 // ignore: file_names
-class DrugDto {
-  final String name;
-  final String leaflet;
+import 'measure.dart';
 
-  DrugDto({required this.name, required this.leaflet});
+class DrugDto {
+  String? name;
+  String? leaflet;
+  Measure? measure;
+  DateTime? initialDate;
+  DateTime? finalDate;
+  String? note;
+
+  DrugDto(
+      {this.name,
+      this.leaflet,
+      this.measure,
+      this.initialDate,
+      this.finalDate,
+      this.note});
 }
