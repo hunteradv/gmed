@@ -180,7 +180,7 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
                                 context, "/drugSchedulerConfig");
                           },
                           child: const Text(
-                            "configurar frequência",
+                            "configurar horários",
                             style: TextStyle(fontSize: 15),
                           ),
                         ),

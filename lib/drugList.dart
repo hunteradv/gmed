@@ -1,15 +1,11 @@
-// ignore: file_names
 import 'dart:async';
 import 'dart:convert';
-import 'dart:html';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'messaging.dart';
 import 'package:http/http.dart' as http;
-
-import 'model/drug.dart';
 import 'model/drugDto.dart';
 
 // ignore: must_be_immutable
@@ -167,99 +163,95 @@ class DrugListPage extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.start,
                         children: [
                           Expanded(
-                            child: Container(
-                              child: Column(
-                                children: [
-                                  const Text("não tomados",
-                                      style: TextStyle(fontSize: 20)),
-                                  ListView(
-                                    shrinkWrap: true,
-                                    children: drugs
-                                        .where((drug) {
-                                          bool taken = drug.data()['taken'];
-                                          return !taken;
-                                        })
-                                        .map((drug) => Dismissible(
-                                              onDismissed: (direction) =>
-                                                  deleteDrug(drug.id, context),
-                                              key: Key(drug.id),
-                                              child: Card(
-                                                elevation: 5,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                margin: const EdgeInsets.only(
-                                                    top: 20),
-                                                child: ListTile(
-                                                  onTap: () {},
-                                                  title: Text(
-                                                      drug['name'].length <= 30
-                                                          ? drug['name']
-                                                          : drug['name']
-                                                                  .substring(
-                                                                      0, 30) +
-                                                              '...'),
-                                                  trailing: Checkbox(
-                                                    onChanged: (bool? value) =>
-                                                        setTaken(drug.id),
-                                                    value: drug['taken'],
-                                                  ),
+                            child: Column(
+                              children: [
+                                const Text("não tomados",
+                                    style: TextStyle(fontSize: 20)),
+                                ListView(
+                                  shrinkWrap: true,
+                                  children: drugs
+                                      .where((drug) {
+                                        bool taken = drug.data()['taken'];
+                                        return !taken;
+                                      })
+                                      .map((drug) => Dismissible(
+                                            onDismissed: (direction) =>
+                                                deleteDrug(drug.id, context),
+                                            key: Key(drug.id),
+                                            child: Card(
+                                              elevation: 5,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              margin: const EdgeInsets.only(
+                                                  top: 20),
+                                              child: ListTile(
+                                                onTap: () {},
+                                                title: Text(
+                                                    drug['name'].length <= 30
+                                                        ? drug['name']
+                                                        : drug['name']
+                                                                .substring(
+                                                                    0, 30) +
+                                                            '...'),
+                                                trailing: Checkbox(
+                                                  onChanged: (bool? value) =>
+                                                      setTaken(drug.id),
+                                                  value: drug['taken'],
                                                 ),
                                               ),
-                                            ))
-                                        .toList(),
-                                  ),
-                                ],
-                              ),
+                                            ),
+                                          ))
+                                      .toList(),
+                                ),
+                              ],
                             ),
                           ),
                           Expanded(
-                            child: Container(
-                              child: Column(
-                                children: [
-                                  const Text("tomados",
-                                      style: TextStyle(fontSize: 20)),
-                                  ListView(
-                                    shrinkWrap: true,
-                                    children: drugs
-                                        .where((drug) {
-                                          bool taken = drug.data()['taken'];
-                                          return taken;
-                                        })
-                                        .map((drug) => Dismissible(
-                                              onDismissed: (direction) =>
-                                                  deleteDrug(drug.id, context),
-                                              key: Key(drug.id),
-                                              child: Card(
-                                                elevation: 5,
-                                                shape: RoundedRectangleBorder(
-                                                  borderRadius:
-                                                      BorderRadius.circular(12),
-                                                ),
-                                                margin: const EdgeInsets.only(
-                                                    top: 20),
-                                                child: ListTile(
-                                                  onTap: () {},
-                                                  title: Text(
-                                                      drug['name'].length <= 30
-                                                          ? drug['name']
-                                                          : drug['name']
-                                                                  .substring(
-                                                                      0, 30) +
-                                                              '...'),
-                                                  trailing: Checkbox(
-                                                    onChanged: (bool? value) =>
-                                                        {},
-                                                    value: drug["taken"],
-                                                  ),
+                            child: Column(
+                              children: [
+                                const Text("tomados",
+                                    style: TextStyle(fontSize: 20)),
+                                ListView(
+                                  shrinkWrap: true,
+                                  children: drugs
+                                      .where((drug) {
+                                        bool taken = drug.data()['taken'];
+                                        return taken;
+                                      })
+                                      .map((drug) => Dismissible(
+                                            onDismissed: (direction) =>
+                                                deleteDrug(drug.id, context),
+                                            key: Key(drug.id),
+                                            child: Card(
+                                              elevation: 5,
+                                              shape: RoundedRectangleBorder(
+                                                borderRadius:
+                                                    BorderRadius.circular(12),
+                                              ),
+                                              margin: const EdgeInsets.only(
+                                                  top: 20),
+                                              child: ListTile(
+                                                onTap: () {},
+                                                title: Text(
+                                                    drug['name'].length <= 30
+                                                        ? drug['name']
+                                                        : drug['name']
+                                                                .substring(
+                                                                    0, 30) +
+                                                            '...'),
+                                                trailing: Checkbox(
+                                                  onChanged: (bool? value) =>
+                                                      {},
+                                                  value: drug["taken"],
                                                 ),
                                               ),
-                                            ))
-                                        .toList(),
-                                  )
-                                ],
-                              ),
+                                            ),
+                                          ))
+                                      .toList(),
+                                )
+                              ],
                             ),
                           ),
                         ],
