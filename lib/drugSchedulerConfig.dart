@@ -1,5 +1,6 @@
 import 'dart:js_interop';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:gmed/messaging.dart';
 import 'package:gmed/model/measure.dart';
 import 'package:gmed/repository/drugRepository.dart';
@@ -155,6 +156,12 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                             BorderRadius.circular(5.0),
                                       ),
                                       child: TextField(
+                                        onChanged: (value) => {
+                                          schedulerQuantityList.add({
+                                            "hour": hour,
+                                            "quantity": quantityController.text
+                                          })
+                                        },
                                         decoration: const InputDecoration(
                                           contentPadding: EdgeInsets.all(15),
                                           hintText: 'quantidade',
@@ -165,6 +172,11 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                           border: InputBorder.none,
                                         ),
                                         controller: quantityController,
+                                        keyboardType: TextInputType.number,
+                                        inputFormatters: <TextInputFormatter>[
+                                          FilteringTextInputFormatter.allow(
+                                              RegExp(r'[0-9]')),
+                                        ],
                                       ),
                                     ),
                                   ),
@@ -228,6 +240,17 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
     if (scheduler.isEmpty) {
       messaging.showAlertDialog(
           "é necessário adicionar no mínimo 1 horário para lembrete", context);
+      return;
+    }
+
+    var quantityList =
+        schedulerQuantityList.map((e) => e["quantity"].toString()).toList();
+    var hourList =
+        schedulerQuantityList.map((e) => e["hour"].toString()).toList();
+
+    if (quantityList.length < hourList.length) {
+      messaging.showAlertDialog(
+          "é necessário inserir a quantidade em todos os registros", context);
     }
 
     var confirmedDrug = Drug(

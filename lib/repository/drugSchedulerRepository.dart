@@ -16,12 +16,15 @@ class DrugSchedulerRepository {
     }
 
     for (var date in dateList) {
-      for (var hour in schedulerQuantityList) {
+      for (var scheduler in schedulerQuantityList) {
+        var hour = scheduler["hour"];
+        var quantity = scheduler["quantity"];
+
         var data = {
           "drugId": drugId,
           "date": date,
-          "hour": "${hour["hour"].minute}:${hour["minute"].minute}",
-          "quantity": hour["quantity"]
+          "hour": "${hour.hour}:${hour.minute}",
+          "quantity": int.parse(quantity)
         };
 
         await firestore.collection("scheduler").add(data);
