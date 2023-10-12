@@ -2,6 +2,7 @@ import 'dart:js';
 import 'dart:js_interop';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter/widgets.dart';
 import '../messaging.dart';
 import '../model/drug.dart';
@@ -43,8 +44,8 @@ class DrugRepository {
             "userId": auth.currentUser!.uid,
             "note": drugToAdd.note,
             "date": date,
-            "hour": "${hour.hour}:${hour.minute}",
-            "quantity": int.parse(quantity),
+            "hour": formatTimeOfDay(hour),
+            "quantity": int.parse(quantity ?? "1"),
             "drugId": drugToAdd.drugId
           };
 
@@ -59,5 +60,11 @@ class DrugRepository {
 
   void deleteDrug(id, context) {
     firestore.collection('drugs').doc(id).delete();
+  }
+
+  String formatTimeOfDay(TimeOfDay time) {
+    final String hour = time.hour.toString().padLeft(2, '0');
+    final String minute = time.minute.toString().padLeft(2, '0');
+    return '$hour:$minute';
   }
 }

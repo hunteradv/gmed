@@ -1,10 +1,12 @@
 import 'dart:js_interop';
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gmed/messaging.dart';
 import 'package:gmed/model/measure.dart';
+import 'package:gmed/repository/drugMeasureRepository.dart';
 import 'package:gmed/repository/drugRepository.dart';
-import 'package:gmed/repository/drugSchedulerRepository.dart';
 import 'package:uuid/uuid.dart';
 import 'model/drug.dart';
 import 'model/drugDto.dart';
@@ -23,8 +25,8 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   var drug = DrugDto();
   var messaging = Messaging();
   var drugRepository = DrugRepository();
-  var drugSchedulerRepository = DrugSchedulerRepository();
   var uuid = const Uuid();
+  var measureRepository = DrugMeasureRepository();
 
   @override
   Widget build(BuildContext context) {
@@ -87,132 +89,181 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                       const SizedBox(
                         height: 50,
                       ),
-                      ListView(
-                        shrinkWrap: true,
-                        children: scheduler.map((hour) {
-                          var quantityController = TextEditingController();
-                          quantityControllers.add(quantityController);
-                          return Container(
-                              margin: const EdgeInsets.only(bottom: 10),
-                              child: Row(
-                                mainAxisAlignment: MainAxisAlignment.start,
-                                children: [
-                                  ElevatedButton(
-                                      style: ElevatedButton.styleFrom(
-                                          backgroundColor: Colors.red,
-                                          shape: const CircleBorder()),
-                                      onPressed: () {
-                                        setState(() {
-                                          scheduler.remove(hour);
-                                        });
-                                      },
-                                      child: const Icon(
-                                        Icons.remove,
-                                        color: Colors.white,
-                                        size: 50,
-                                      )),
-                                  SizedBox(
-                                    height: 40,
-                                    width: 150,
-                                    child: ElevatedButton(
-                                        style: ElevatedButton.styleFrom(
-                                            backgroundColor: Colors.white),
-                                        onPressed: () async {
-                                          final selectedTime =
-                                              await showTimePicker(
-                                                  context: context,
-                                                  initialTime: TimeOfDay.now());
+                      Expanded(
+                        child: SingleChildScrollView(
+                          child: Column(
+                            children: [
+                              ListView(
+                                shrinkWrap: true,
+                                children: scheduler.map((hour) {
+                                  var quantityController =
+                                      TextEditingController();
+                                  quantityControllers.add(quantityController);
+                                  return Container(
+                                      margin: const EdgeInsets.only(bottom: 10),
+                                      child: Row(
+                                        mainAxisAlignment:
+                                            MainAxisAlignment.start,
+                                        children: [
+                                          ElevatedButton(
+                                              style: ElevatedButton.styleFrom(
+                                                  backgroundColor: Colors.red,
+                                                  shape: const CircleBorder()),
+                                              onPressed: () {
+                                                setState(() {
+                                                  scheduler.remove(hour);
+                                                });
+                                              },
+                                              child: const Icon(
+                                                Icons.remove,
+                                                color: Colors.white,
+                                                size: 40,
+                                              )),
+                                          SizedBox(
+                                            height: 40,
+                                            width: 100,
+                                            child: ElevatedButton(
+                                                style: ElevatedButton.styleFrom(
+                                                    backgroundColor:
+                                                        Colors.white),
+                                                onPressed: () async {
+                                                  final selectedTime =
+                                                      await showTimePicker(
+                                                          context: context,
+                                                          initialTime:
+                                                              TimeOfDay.now());
 
-                                          setState(() {
-                                            scheduler.remove(hour);
-                                            scheduler.add(selectedTime!);
-                                            schedulerQuantityList.add({
-                                              "hour": hour,
-                                              "quantity":
-                                                  quantityController.text
-                                            });
-                                          });
-                                        },
-                                        child: Text(
-                                          hour.format(context).toString(),
-                                          style: const TextStyle(
-                                              color: Color(0xFF585858),
-                                              fontSize: 25),
-                                        )),
-                                  ),
-                                  const SizedBox(
-                                    width: 10,
-                                  ),
-                                  Material(
-                                    elevation: 3,
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(5.0),
-                                    ),
-                                    borderOnForeground: true,
-                                    child: Container(
-                                      width: 122,
-                                      height: 40,
-                                      decoration: BoxDecoration(
-                                        color: Colors.white,
-                                        borderRadius:
-                                            BorderRadius.circular(5.0),
-                                      ),
-                                      child: TextField(
-                                        onChanged: (value) => {
-                                          schedulerQuantityList.add({
-                                            "hour": hour,
-                                            "quantity": quantityController.text
-                                          })
-                                        },
-                                        decoration: const InputDecoration(
-                                          contentPadding: EdgeInsets.all(15),
-                                          hintText: 'quantidade',
-                                          hintStyle: TextStyle(
-                                            fontFamily: 'montserratLight',
-                                            color: Colors.grey,
+                                                  setState(() {
+                                                    var indexToReplace =
+                                                        scheduler.indexWhere(
+                                                            (element) =>
+                                                                element ==
+                                                                hour);
+
+                                                    if (indexToReplace
+                                                            .isDefinedAndNotNull &&
+                                                        !indexToReplace
+                                                            .isNegative) {
+                                                      scheduler[
+                                                              indexToReplace] =
+                                                          selectedTime ??
+                                                              TimeOfDay.now();
+                                                    }
+
+                                                    var indexSchedulerQuantityToReplace =
+                                                        schedulerQuantityList
+                                                            .indexWhere(
+                                                                (element) =>
+                                                                    element ==
+                                                                    hour);
+
+                                                    if (indexSchedulerQuantityToReplace
+                                                            .isDefinedAndNotNull &&
+                                                        !indexSchedulerQuantityToReplace
+                                                            .isNegative) {
+                                                      schedulerQuantityList[
+                                                          indexSchedulerQuantityToReplace] = {
+                                                        "hour": selectedTime,
+                                                        "quantity":
+                                                            quantityController
+                                                                .text
+                                                      };
+                                                    }
+                                                  });
+                                                },
+                                                child: Text(
+                                                  hour
+                                                      .format(context)
+                                                      .toString(),
+                                                  style: const TextStyle(
+                                                      color: Color(0xFF585858),
+                                                      fontSize: 25),
+                                                )),
                                           ),
-                                          border: InputBorder.none,
-                                        ),
-                                        controller: quantityController,
-                                        keyboardType: TextInputType.number,
-                                        inputFormatters: <TextInputFormatter>[
-                                          FilteringTextInputFormatter.allow(
-                                              RegExp(r'[0-9]')),
+                                          const SizedBox(
+                                            width: 10,
+                                          ),
+                                          Material(
+                                            elevation: 3,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(5.0),
+                                            ),
+                                            borderOnForeground: true,
+                                            child: Container(
+                                              width: 122,
+                                              height: 40,
+                                              decoration: BoxDecoration(
+                                                color: Colors.white,
+                                                borderRadius:
+                                                    BorderRadius.circular(5.0),
+                                              ),
+                                              child: TextField(
+                                                onChanged: (value) => {
+                                                  schedulerQuantityList.add({
+                                                    "hour": hour,
+                                                    "quantity":
+                                                        quantityController.text
+                                                  })
+                                                },
+                                                decoration:
+                                                    const InputDecoration(
+                                                  contentPadding:
+                                                      EdgeInsets.all(15),
+                                                  hintText: 'quantidade',
+                                                  hintStyle: TextStyle(
+                                                    fontFamily:
+                                                        'montserratLight',
+                                                    color: Colors.grey,
+                                                  ),
+                                                  border: InputBorder.none,
+                                                ),
+                                                controller: quantityController,
+                                                keyboardType:
+                                                    TextInputType.number,
+                                                inputFormatters: <TextInputFormatter>[
+                                                  FilteringTextInputFormatter
+                                                      .allow(RegExp(r'[0-9]')),
+                                                ],
+                                              ),
+                                            ),
+                                          ),
+                                          Container(
+                                            margin: const EdgeInsets.fromLTRB(
+                                                5, 8, 0, 0),
+                                            child: Text(
+                                              measureRepository
+                                                  .getAbrevTranslatedMeasure(
+                                                      drug.measure ??
+                                                          Measure.capsule),
+                                              style:
+                                                  const TextStyle(fontSize: 18),
+                                            ),
+                                          )
                                         ],
-                                      ),
-                                    ),
-                                  ),
-                                  Container(
-                                    margin:
-                                        const EdgeInsets.fromLTRB(5, 8, 0, 0),
-                                    child: const Text(
-                                      "ml",
-                                      style: TextStyle(fontSize: 22),
-                                    ),
-                                  )
-                                ],
-                              ));
-                        }).toList(),
-                      ),
-                      Align(
-                        alignment: Alignment.centerLeft,
-                        child: ElevatedButton(
-                            style: ElevatedButton.styleFrom(
-                                backgroundColor: Colors.green,
-                                shape: const CircleBorder()),
-                            onPressed: () {
-                              setState(() {
-                                scheduler.add(TimeOfDay.now());
-                              });
-                            },
-                            child: const Icon(
-                              Icons.add,
-                              color: Colors.white,
-                              size: 50,
-                            )),
-                      ),
-                      const SizedBox(
-                        height: 150,
+                                      ));
+                                }).toList(),
+                              ),
+                              Align(
+                                alignment: Alignment.centerLeft,
+                                child: ElevatedButton(
+                                    style: ElevatedButton.styleFrom(
+                                        backgroundColor: Colors.green,
+                                        shape: const CircleBorder()),
+                                    onPressed: () {
+                                      setState(() {
+                                        scheduler.add(TimeOfDay.now());
+                                      });
+                                    },
+                                    child: const Icon(
+                                      Icons.add,
+                                      color: Colors.white,
+                                      size: 40,
+                                    )),
+                              ),
+                            ],
+                          ),
+                        ),
                       ),
                       ElevatedButton(
                         onPressed: () {
@@ -281,5 +332,9 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
 
     Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
     messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
+  }
+
+  String enumToString(Measure enumValue) {
+    return enumValue.toString().split('.').last;
   }
 }

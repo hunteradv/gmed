@@ -4,10 +4,12 @@ import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
+import 'package:gmed/repository/drugMeasureRepository.dart';
 import 'package:gmed/repository/drugRepository.dart';
 import 'messaging.dart';
 import 'package:http/http.dart' as http;
 import 'model/drugDto.dart';
+import 'model/measure.dart';
 
 // ignore: must_be_immutable
 class DrugListPage extends StatelessWidget {
@@ -21,6 +23,7 @@ class DrugListPage extends StatelessWidget {
   var repository = DrugRepository();
   List<DrugDto> drugs = [];
   List<DrugDto> distinctDrugs = [];
+  var measureRepository = DrugMeasureRepository();
 
   String removeDiacritics(String str) {
     var withDia =
@@ -190,12 +193,37 @@ class DrugListPage extends StatelessWidget {
                                                 const EdgeInsets.only(top: 20),
                                             child: ListTile(
                                               onTap: () {},
-                                              title: Text(drug['name'].length <=
-                                                      30
-                                                  ? drug['name']
-                                                  : drug['name']
-                                                          .substring(0, 30) +
-                                                      '...'),
+                                              title: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(drug['name'].length <= 30
+                                                      ? drug['name']
+                                                      : drug['name'].substring(
+                                                              0, 30) +
+                                                          '...'),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        drug["hour"],
+                                                        style: const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      const Text(" | "),
+                                                      Text(drug["quantity"]
+                                                          .toString()),
+                                                      const SizedBox(width: 5),
+                                                      Text(measureRepository
+                                                          .getAbrevTranslatedMeasure(
+                                                              Measure.values[drug[
+                                                                  "measure"]])),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                               trailing: Checkbox(
                                                 onChanged: (bool? value) =>
                                                     setTaken(drug.id),
@@ -235,13 +263,37 @@ class DrugListPage extends StatelessWidget {
                                             margin:
                                                 const EdgeInsets.only(top: 20),
                                             child: ListTile(
-                                              onTap: () {},
-                                              title: Text(drug['name'].length <=
-                                                      30
-                                                  ? drug['name']
-                                                  : drug['name']
-                                                          .substring(0, 30) +
-                                                      '...'),
+                                              title: Row(
+                                                mainAxisAlignment:
+                                                    MainAxisAlignment
+                                                        .spaceBetween,
+                                                children: [
+                                                  Text(drug['name'].length <= 30
+                                                      ? drug['name']
+                                                      : drug['name'].substring(
+                                                              0, 30) +
+                                                          '...'),
+                                                  Row(
+                                                    children: [
+                                                      Text(
+                                                        drug["hour"],
+                                                        style: const TextStyle(
+                                                            fontWeight:
+                                                                FontWeight
+                                                                    .bold),
+                                                      ),
+                                                      const Text(" | "),
+                                                      Text(drug["quantity"]
+                                                          .toString()),
+                                                      const SizedBox(width: 5),
+                                                      Text(measureRepository
+                                                          .getAbrevTranslatedMeasure(
+                                                              Measure.values[drug[
+                                                                  "measure"]])),
+                                                    ],
+                                                  ),
+                                                ],
+                                              ),
                                               trailing: Checkbox(
                                                 onChanged: (bool? value) => {},
                                                 value: drug["taken"],
@@ -300,7 +352,8 @@ class DrugListPage extends StatelessWidget {
 
   deleteDrug(String id, BuildContext context) async {
     var response = await messaging.confirmYesNo(
-        "Tem certeza que deseja excluir?", context);
+        "Tem certeza que deseja excluir? ao confirmar, todos os agendamentos desse medicamento serão excluidos",
+        context);
 
     if (response == true) {
       // ignore: use_build_context_synchronously

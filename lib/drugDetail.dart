@@ -23,9 +23,10 @@ class _DrugDetailState extends State<DrugDetailPage> {
   String? leaflet;
 
   final Map<Measure, String> measures = {
-    Measure.milliliter: 'mililitros',
-    Measure.capsule: 'capsula',
-    Measure.teaspoon: "colher de chá"
+    Measure.milliliter: 'mililitro(s)',
+    Measure.capsule: 'capsula(s)',
+    Measure.teaspoon: "colher(es) de chá",
+    Measure.pill: "pilula(s)"
   };
 
   @override
