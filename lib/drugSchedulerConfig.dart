@@ -5,6 +5,7 @@ import 'package:gmed/messaging.dart';
 import 'package:gmed/model/measure.dart';
 import 'package:gmed/repository/drugRepository.dart';
 import 'package:gmed/repository/drugSchedulerRepository.dart';
+import 'package:uuid/uuid.dart';
 import 'model/drug.dart';
 import 'model/drugDto.dart';
 
@@ -23,6 +24,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   var messaging = Messaging();
   var drugRepository = DrugRepository();
   var drugSchedulerRepository = DrugSchedulerRepository();
+  var uuid = const Uuid();
 
   @override
   Widget build(BuildContext context) {
@@ -253,6 +255,8 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
           "é necessário inserir a quantidade em todos os registros", context);
     }
 
+    var drugId = uuid.v4();
+
     var confirmedDrug = Drug(
         name: drug.name ?? "",
         leaflet: drug.leaflet,
@@ -260,7 +264,8 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
         initialDate: drug.initialDate ?? DateTime.now(),
         finaldate:
             drug.finalDate ?? DateTime.now().add(const Duration(days: 1)),
-        note: drug.note);
+        note: drug.note,
+        drugId: drugId);
 
     var dateList = <DateTime>[];
 
@@ -271,9 +276,8 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
       dateList.add(date);
     }
 
-    var drugId = await drugRepository.addDrug(confirmedDrug, context);
-    drugSchedulerRepository.addDrugSchedule(
-        drugId, dateList, schedulerQuantityList, context);
+    drugRepository.addDrug(
+        confirmedDrug, dateList, schedulerQuantityList, context);
 
     Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
     messaging.showSnackBar("medicamento cadastrado com sucesso!", context);

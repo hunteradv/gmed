@@ -11,29 +11,46 @@ class DrugRepository {
   FirebaseAuth auth = FirebaseAuth.instance;
   Messaging messaging = Messaging();
 
-  Future<String> addDrug(Drug drugToAdd, BuildContext context) async {
+  void addDrug(Drug drugToAdd, List<DateTime> dates,
+      List<dynamic> schedulerQuantityList, BuildContext context) async {
     try {
+      if (dates.isEmpty) {
+        throw Exception("erro ao tentar adicionar o medicamento");
+      }
+
+      if (schedulerQuantityList.isEmpty) {
+        throw Exception("erro ao tentar adicionar o medicamento");
+      }
+
       if (drugToAdd.isUndefinedOrNull) {
         throw Exception("erro ao tentar adicionar o medicamento");
       }
 
       var measure = drugToAdd.measure.index;
 
-      var drugData = {
-        "name": drugToAdd.name,
-        "initialDate": drugToAdd.initialDate,
-        "finalDate": drugToAdd.finaldate,
-        "leaflet": drugToAdd.leaflet,
-        "measure": measure,
-        "taken": false,
-        "userId": auth.currentUser!.uid,
-        "note": drugToAdd.note
-      };
+      for (var date in dates) {
+        for (var scheduler in schedulerQuantityList) {
+          var hour = scheduler["hour"];
+          var quantity = scheduler["quantity"];
 
-      DocumentReference<Map<String, dynamic>> docReference =
+          var drugData = {
+            "name": drugToAdd.name,
+            "initialDate": drugToAdd.initialDate,
+            "finalDate": drugToAdd.finaldate,
+            "leaflet": drugToAdd.leaflet,
+            "measure": measure,
+            "taken": false,
+            "userId": auth.currentUser!.uid,
+            "note": drugToAdd.note,
+            "date": date,
+            "hour": "${hour.hour}:${hour.minute}",
+            "quantity": int.parse(quantity),
+            "drugId": drugToAdd.drugId
+          };
+
           await firestore.collection("drugs").add(drugData);
-
-      return docReference.id;
+        }
+      }
     } catch (ex) {
       messaging.showAlertDialog(ex.toString(), context);
       rethrow;

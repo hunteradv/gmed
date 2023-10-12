@@ -129,7 +129,8 @@ class DrugListPage extends StatelessWidget {
                 },
                 noItemsFoundBuilder: (context) {
                   return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 8.0),
+                    padding:
+                        EdgeInsets.symmetric(vertical: 8.0, horizontal: 15.0),
                     child: Text(
                       "Nenhum resultado encontrado",
                       style: TextStyle(fontSize: 15),
@@ -150,7 +151,7 @@ class DrugListPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(30, 60, 30, 20),
                   child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: firestore.collection('drugs').snapshots(),
+                    stream: firestore.collection("drugs").snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return const Center(
@@ -268,7 +269,7 @@ class DrugListPage extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.fromLTRB(35, 0, 35, 0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.end,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ElevatedButton(
                 onPressed: () {},
@@ -279,6 +280,17 @@ class DrugListPage extends StatelessWidget {
                         borderRadius: BorderRadius.circular(50))),
                 child: const Icon(Icons.camera_alt),
               ),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushNamed(context, "/drugDetail");
+                },
+                style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFA076F9),
+                    fixedSize: const Size(60, 60),
+                    shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(50))),
+                child: const Icon(Icons.add),
+              )
             ],
           ),
         ),

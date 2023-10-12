@@ -27,7 +27,7 @@ class DrugSchedulerRepository {
           "quantity": int.parse(quantity)
         };
 
-        await firestore.collection("scheduler").add(data);
+        await firestore.collection("schedulers").add(data);
       }
     }
   }

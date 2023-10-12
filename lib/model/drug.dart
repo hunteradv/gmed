@@ -7,6 +7,7 @@ class Drug {
   final DateTime finaldate;
   final Measure measure;
   final String? note;
+  final String drugId;
 
   Drug(
       {required this.name,
@@ -14,5 +15,6 @@ class Drug {
       required this.initialDate,
       required this.finaldate,
       required this.measure,
-      required this.note});
+      required this.note,
+      required this.drugId});
 }
