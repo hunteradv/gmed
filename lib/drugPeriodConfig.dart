@@ -1,9 +1,6 @@
 // ignore: file_names
-import 'dart:js_interop';
-
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-
 import 'messaging.dart';
 import 'model/drugDto.dart';
 
@@ -21,6 +18,7 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
   var dateFormat = DateFormat("dd/MM/yyyy");
   Messaging messaging = Messaging();
   late DrugDto drug;
+  var isEdit = false;
 
   Future<void> _selectDateFirst(BuildContext context) async {
     var pickedDate = await showDatePicker(
@@ -56,6 +54,9 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (arguments != null) {
       drug = arguments['drug'];
+      dateFirst = drug.initialDate ?? dateFirst;
+      dateLast = drug.finalDate ?? dateLast;
+      isEdit = arguments["isEdit"];
     }
 
     return Scaffold(
@@ -110,71 +111,69 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
                         height: 20,
                       ),
                       const SizedBox(height: 30),
-                      Visibility(
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceAround,
-                          children: [
-                            Container(
-                              margin: const EdgeInsets.only(left: 20),
-                              width: 195,
-                              height: 50,
-                              decoration: BoxDecoration(
-                                borderRadius: BorderRadius.circular(10),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceAround,
+                        children: [
+                          Container(
+                            margin: const EdgeInsets.only(left: 20),
+                            width: 150,
+                            height: 50,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(10),
+                            ),
+                            child: ElevatedButton(
+                              style: ElevatedButton.styleFrom(
+                                  backgroundColor: Colors.white),
+                              onPressed: () => _selectDateFirst(context),
+                              child: Row(
+                                mainAxisAlignment:
+                                    MainAxisAlignment.spaceAround,
+                                children: [
+                                  const Text(
+                                    "início",
+                                    style: TextStyle(
+                                        color: Color(0xFF585858),
+                                        fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(dateFormat.format(dateFirst),
+                                      style: const TextStyle(
+                                        color: Color(0xFF585858),
+                                      ))
+                                ],
                               ),
+                            ),
+                          ),
+                          Container(
+                              width: 150,
+                              height: 50,
+                              margin: const EdgeInsets.only(right: 20),
+                              decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(10)),
                               child: ElevatedButton(
                                 style: ElevatedButton.styleFrom(
                                     backgroundColor: Colors.white),
-                                onPressed: () => _selectDateFirst(context),
+                                onPressed: () {
+                                  _selectDateLast(context);
+                                },
                                 child: Row(
                                   mainAxisAlignment:
                                       MainAxisAlignment.spaceAround,
                                   children: [
                                     const Text(
-                                      "início",
+                                      "fim",
                                       style: TextStyle(
                                           color: Color(0xFF585858),
                                           fontWeight: FontWeight.bold),
                                     ),
-                                    Text(dateFormat.format(dateFirst),
-                                        style: const TextStyle(
-                                          color: Color(0xFF585858),
-                                        ))
+                                    Text(
+                                      dateFormat.format(dateLast),
+                                      style: const TextStyle(
+                                          color: Color(0xFF585858)),
+                                    )
                                   ],
                                 ),
-                              ),
-                            ),
-                            Container(
-                                width: 195,
-                                height: 50,
-                                margin: const EdgeInsets.only(right: 20),
-                                decoration: BoxDecoration(
-                                    borderRadius: BorderRadius.circular(10)),
-                                child: ElevatedButton(
-                                  style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.white),
-                                  onPressed: () {
-                                    _selectDateLast(context);
-                                  },
-                                  child: Row(
-                                    mainAxisAlignment:
-                                        MainAxisAlignment.spaceAround,
-                                    children: [
-                                      const Text(
-                                        "fim",
-                                        style: TextStyle(
-                                            color: Color(0xFF585858),
-                                            fontWeight: FontWeight.bold),
-                                      ),
-                                      Text(
-                                        dateFormat.format(dateLast),
-                                        style: const TextStyle(
-                                            color: Color(0xFF585858)),
-                                      )
-                                    ],
-                                  ),
-                                )),
-                          ],
-                        ),
+                              )),
+                        ],
                       ),
                       const SizedBox(
                         height: 150,
@@ -204,7 +203,7 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
   }
 
   confirm() {
-    if (dateFirst.isUndefinedOrNull || dateLast.isUndefinedOrNull) {
+    if (dateFirst == null || dateLast == null) {
       messaging.showAlertDialog("obrigatório inserir as datas", context);
       return;
     }
@@ -219,6 +218,6 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
     drug.finalDate = dateLast;
 
     Navigator.pushNamed(context, "/drugSchedulerConfig",
-        arguments: {'drug': drug});
+        arguments: {'drug': drug, "isEdit": isEdit});
   }
 }

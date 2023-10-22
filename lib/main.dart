@@ -19,7 +19,7 @@ const firebaseConfig = FirebaseOptions(
     appId: "1:561345286170:web:b46ac4290edf8468f7c1a3");
 
 void main() async {
-  WidgetsFlutterBinding.ensureInitialized;
+  WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: firebaseConfig);
   runApp(const MyApp());
 }

@@ -1,3 +1,4 @@
+// ignore: file_names
 import '../model/measure.dart';
 
 class DrugMeasureRepository {

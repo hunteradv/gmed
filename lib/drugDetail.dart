@@ -1,6 +1,6 @@
-import 'dart:js_interop';
 import 'package:flutter/material.dart';
 import 'package:gmed/messaging.dart';
+import 'package:intl/intl.dart';
 import 'model/drugDto.dart';
 import 'model/measure.dart';
 
@@ -17,6 +17,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
   DateTime? dateFirst;
   DateTime? dateLast;
   Measure? _selectedMeasure;
+  var isEdit = false;
   var nameTxt = TextEditingController();
   var noteTxt = TextEditingController();
   Messaging messaging = Messaging();
@@ -34,15 +35,33 @@ class _DrugDetailState extends State<DrugDetailPage> {
     Map<String, dynamic>? arguments =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (arguments != null) {
-      drug = arguments['drug'];
+      if (arguments["isEdit"]) {
+        var drugVm = arguments["drug"];
+        drug = DrugDto(
+            name: drugVm["name"],
+            leaflet: drugVm["leaflet"],
+            initialDate: DateFormat("dd/MM/yyyy").parse(drugVm["initialDate"]),
+            finalDate: DateFormat("dd/MM/yyyy").parse(drugVm["finalDate"]),
+            measure: Measure.values[drugVm["measure"]],
+            note: drugVm["note"],
+            drugId: drugVm["drugId"],
+            date: drugVm["date"]);
+
+        _selectedMeasure = drug!.measure;
+        isEdit = true;
+        noteTxt.text = drug!.note ?? "";
+      } else {
+        drug = arguments['drug'];
+      }
     }
 
-    if (drug.isDefinedAndNotNull && drug!.name!.isNotEmpty) {
+    if (drug != null && drug!.name!.isNotEmpty) {
       nameTxt.text = drug!.name ?? "";
       leaflet = drug!.leaflet;
     }
 
     return Scaffold(
+      resizeToAvoidBottomInset: false,
       body: Container(
         color: const Color(0xFFA076F9),
         width: double.infinity,
@@ -96,9 +115,10 @@ class _DrugDetailState extends State<DrugDetailPage> {
                           padding: const EdgeInsets.fromLTRB(10, 0, 0, 0),
                           child: TextField(
                               controller: nameTxt,
-                              decoration: const InputDecoration(
+                              decoration: InputDecoration(
+                                  enabled: !isEdit || drug!.measure == null,
                                   hintText: 'nome',
-                                  hintStyle: TextStyle(
+                                  hintStyle: const TextStyle(
                                       fontFamily: 'montserratLight',
                                       color: Colors.grey),
                                   border: InputBorder.none)),
@@ -179,12 +199,12 @@ class _DrugDetailState extends State<DrugDetailPage> {
   }
 
   confirm(context) {
-    if (nameTxt.text.isUndefinedOrNull || nameTxt.text.isEmpty) {
+    if (nameTxt.text.isEmpty) {
       messaging.showAlertDialog("é obrigatório definir um nome", context);
       return;
     }
 
-    if (_selectedMeasure.isUndefinedOrNull) {
+    if (_selectedMeasure == null) {
       messaging.showAlertDialog(
           "é obrigatório selecionar a unidade de medida", context);
       return;
@@ -194,9 +214,13 @@ class _DrugDetailState extends State<DrugDetailPage> {
         name: nameTxt.text,
         leaflet: leaflet,
         measure: _selectedMeasure,
-        note: noteTxt.text);
+        note: noteTxt.text,
+        initialDate: drug?.initialDate,
+        finalDate: drug?.finalDate,
+        drugId: drug?.drugId,
+        date: drug?.date);
 
     Navigator.pushNamed(context, "/drugPeriodConfig",
-        arguments: {'drug': drug});
+        arguments: {'drug': drug, "isEdit": isEdit});
   }
 }

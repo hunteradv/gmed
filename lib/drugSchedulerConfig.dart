@@ -1,12 +1,12 @@
-import 'dart:js_interop';
-import 'dart:math';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gmed/messaging.dart';
 import 'package:gmed/model/measure.dart';
 import 'package:gmed/repository/drugMeasureRepository.dart';
-import 'package:gmed/repository/drugRepository.dart';
+import 'package:gmed/repository/drug_repository.dart';
+import 'package:gmed/repository/leaflet_repository.dart';
 import 'package:uuid/uuid.dart';
 import 'model/drug.dart';
 import 'model/drugDto.dart';
@@ -19,7 +19,6 @@ class DrugSchedulerConfigPage extends StatefulWidget {
 }
 
 class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
-  var scheduler = <TimeOfDay>[];
   var quantityControllers = <TextEditingController>[];
   List schedulerQuantityList = [];
   var drug = DrugDto();
@@ -27,15 +26,29 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   var drugRepository = DrugRepository();
   var uuid = const Uuid();
   var measureRepository = DrugMeasureRepository();
+  var leafletRepository = LeafletRepository();
+  var isEdit = false;
 
   @override
-  Widget build(BuildContext context) {
+  Future<void> didChangeDependencies() async {
+    super.didChangeDependencies();
     Map<String, dynamic>? arguments =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (arguments != null) {
       drug = arguments['drug'];
+      isEdit = arguments["isEdit"];
+      if (drug.drugId != null) {
+        var scheduler =
+            await drugRepository.getSchedulerAsync(drug.drugId!, drug.date!);
+        setState(() {
+          schedulerQuantityList = scheduler;
+        });
+      }
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
         color: const Color(0xFFA076F9),
@@ -95,7 +108,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                             children: [
                               ListView(
                                 shrinkWrap: true,
-                                children: scheduler.map((hour) {
+                                children: schedulerQuantityList.map((item) {
                                   var quantityController =
                                       TextEditingController();
                                   quantityControllers.add(quantityController);
@@ -111,7 +124,8 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                                   shape: const CircleBorder()),
                                               onPressed: () {
                                                 setState(() {
-                                                  scheduler.remove(hour);
+                                                  schedulerQuantityList
+                                                      .remove(item);
                                                 });
                                               },
                                               child: const Icon(
@@ -132,52 +146,35 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                                           context: context,
                                                           initialTime:
                                                               TimeOfDay.now());
+                                                  if (selectedTime != null) {
+                                                    setState(() {
+                                                      var quantity =
+                                                          int.tryParse(
+                                                              quantityController
+                                                                  .text);
+                                                      var indexSchedulerQuantityToReplace =
+                                                          schedulerQuantityList
+                                                              .indexWhere((element) =>
+                                                                  element[
+                                                                      "hour"] ==
+                                                                  item["hour"]);
 
-                                                  setState(() {
-                                                    var indexToReplace =
-                                                        scheduler.indexWhere(
-                                                            (element) =>
-                                                                element ==
-                                                                hour);
-
-                                                    if (indexToReplace
-                                                            .isDefinedAndNotNull &&
-                                                        !indexToReplace
-                                                            .isNegative) {
-                                                      scheduler[
-                                                              indexToReplace] =
-                                                          selectedTime ??
-                                                              TimeOfDay.now();
-                                                    }
-
-                                                    var indexSchedulerQuantityToReplace =
-                                                        schedulerQuantityList
-                                                            .indexWhere(
-                                                                (element) =>
-                                                                    element ==
-                                                                    hour);
-
-                                                    if (indexSchedulerQuantityToReplace
-                                                            .isDefinedAndNotNull &&
-                                                        !indexSchedulerQuantityToReplace
-                                                            .isNegative) {
-                                                      schedulerQuantityList[
-                                                          indexSchedulerQuantityToReplace] = {
-                                                        "hour": selectedTime,
-                                                        "quantity":
-                                                            quantityController
-                                                                .text
-                                                      };
-                                                    }
-                                                  });
+                                                      if (!indexSchedulerQuantityToReplace
+                                                          .isNegative) {
+                                                        schedulerQuantityList[
+                                                            indexSchedulerQuantityToReplace] = {
+                                                          "hour": selectedTime,
+                                                          "quantity": quantity
+                                                        };
+                                                      }
+                                                    });
+                                                  }
                                                 },
                                                 child: Text(
-                                                  hour
-                                                      .format(context)
-                                                      .toString(),
+                                                  item["hour"].toString(),
                                                   style: const TextStyle(
                                                       color: Color(0xFF585858),
-                                                      fontSize: 25),
+                                                      fontSize: 20),
                                                 )),
                                           ),
                                           const SizedBox(
@@ -191,7 +188,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                             ),
                                             borderOnForeground: true,
                                             child: Container(
-                                              width: 122,
+                                              width: 110,
                                               height: 40,
                                               decoration: BoxDecoration(
                                                 color: Colors.white,
@@ -199,12 +196,20 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                                     BorderRadius.circular(5.0),
                                               ),
                                               child: TextField(
-                                                onChanged: (value) => {
-                                                  schedulerQuantityList.add({
-                                                    "hour": hour,
-                                                    "quantity":
-                                                        quantityController.text
-                                                  })
+                                                onChanged: (value) {
+                                                  var index =
+                                                      schedulerQuantityList
+                                                          .indexWhere(
+                                                              (element) =>
+                                                                  element[
+                                                                      "hour"] ==
+                                                                  item["hour"]);
+
+                                                  schedulerQuantityList[index] =
+                                                      {
+                                                    "hour": item["hour"],
+                                                    "quantity": value
+                                                  };
                                                 },
                                                 decoration:
                                                     const InputDecoration(
@@ -212,6 +217,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                                       EdgeInsets.all(15),
                                                   hintText: 'quantidade',
                                                   hintStyle: TextStyle(
+                                                    fontSize: 14,
                                                     fontFamily:
                                                         'montserratLight',
                                                     color: Colors.grey,
@@ -252,7 +258,8 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                         shape: const CircleBorder()),
                                     onPressed: () {
                                       setState(() {
-                                        scheduler.add(TimeOfDay.now());
+                                        schedulerQuantityList
+                                            .add({"hour": TimeOfDay.now()});
                                       });
                                     },
                                     child: const Icon(
@@ -290,7 +297,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   }
 
   void confirm(context) async {
-    if (scheduler.isEmpty) {
+    if (schedulerQuantityList.isEmpty) {
       messaging.showAlertDialog(
           "é necessário adicionar no mínimo 1 horário para lembrete", context);
       return;
@@ -306,17 +313,17 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
           "é necessário inserir a quantidade em todos os registros", context);
     }
 
-    var drugId = uuid.v4();
-
     var confirmedDrug = Drug(
         name: drug.name ?? "",
-        leaflet: drug.leaflet,
+        leaflet: isEdit
+            ? drug.leaflet
+            : await leafletRepository.getLeafletLink(drug.leaflet ?? ""),
         measure: drug.measure ?? Measure.capsule,
         initialDate: drug.initialDate ?? DateTime.now(),
         finaldate:
             drug.finalDate ?? DateTime.now().add(const Duration(days: 1)),
         note: drug.note,
-        drugId: drugId);
+        drugId: isEdit ? uuid.v4() : drug.drugId!);
 
     var dateList = <DateTime>[];
 
@@ -327,6 +334,10 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
       dateList.add(date);
     }
 
+    if (isEdit) {
+      drugRepository.updateDrug(
+          confirmedDrug, dateList, schedulerQuantityList, context, drug.date!);
+    }
     drugRepository.addDrug(
         confirmedDrug, dateList, schedulerQuantityList, context);
 

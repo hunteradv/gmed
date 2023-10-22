@@ -8,6 +8,8 @@ class DrugDto {
   DateTime? initialDate;
   DateTime? finalDate;
   String? note;
+  String? drugId;
+  String? date;
 
   DrugDto(
       {this.name,
@@ -15,5 +17,7 @@ class DrugDto {
       this.measure,
       this.initialDate,
       this.finalDate,
-      this.note});
+      this.note,
+      this.drugId,
+      this.date});
 }

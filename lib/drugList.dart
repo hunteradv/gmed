@@ -2,10 +2,12 @@ import 'dart:async';
 import 'dart:convert';
 import 'package:autocomplete_textfield/autocomplete_textfield.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_typeahead/flutter_typeahead.dart';
 import 'package:gmed/repository/drugMeasureRepository.dart';
-import 'package:gmed/repository/drugRepository.dart';
+import 'package:gmed/repository/drug_repository.dart';
+import 'package:intl/intl.dart';
 import 'messaging.dart';
 import 'package:http/http.dart' as http;
 import 'model/drugDto.dart';
@@ -24,6 +26,8 @@ class DrugListPage extends StatelessWidget {
   List<DrugDto> drugs = [];
   List<DrugDto> distinctDrugs = [];
   var measureRepository = DrugMeasureRepository();
+  var auth = FirebaseAuth.instance;
+  var dateNow = DateTime.now();
 
   String removeDiacritics(String str) {
     var withDia =
@@ -66,6 +70,8 @@ class DrugListPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var dateFormat = DateFormat("dd/MM/yyyy");
+    var dateFormated = dateFormat.format(dateNow);
     return Scaffold(
       body: Container(
         color: const Color(0xFFA076F9),
@@ -122,7 +128,7 @@ class DrugListPage extends StatelessWidget {
                       .first;
 
                   Navigator.pushNamed(context, '/drugDetail',
-                      arguments: {'drug': selectedDrug});
+                      arguments: {'drug': selectedDrug, "isEdit": false});
                 },
                 suggestionsCallback: (pattern) async {
                   var list = await getDrug(pattern);
@@ -154,7 +160,11 @@ class DrugListPage extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.fromLTRB(30, 60, 30, 20),
                   child: StreamBuilder<QuerySnapshot<Map<String, dynamic>>>(
-                    stream: firestore.collection("drugs").snapshots(),
+                    stream: firestore
+                        .collection("drugs")
+                        .where("userId", isEqualTo: auth.currentUser!.uid)
+                        .where("date", isEqualTo: dateFormated)
+                        .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {
                         return const Center(
@@ -192,34 +202,54 @@ class DrugListPage extends StatelessWidget {
                                             margin:
                                                 const EdgeInsets.only(top: 20),
                                             child: ListTile(
-                                              onTap: () {},
+                                              onTap: () {
+                                                Navigator.pushNamed(
+                                                    context, '/drugDetail',
+                                                    arguments: {
+                                                      "drug": drug,
+                                                      "isEdit": true
+                                                    });
+                                              },
                                               title: Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
                                                         .spaceBetween,
                                                 children: [
-                                                  Text(drug['name'].length <= 30
-                                                      ? drug['name']
-                                                      : drug['name'].substring(
-                                                              0, 30) +
-                                                          '...'),
+                                                  Text(
+                                                    drug['name'].length <= 15
+                                                        ? drug['name']
+                                                        : drug['name']
+                                                                .substring(
+                                                                    0, 15) +
+                                                            '...',
+                                                    style: const TextStyle(
+                                                        fontSize: 15),
+                                                  ),
                                                   Row(
                                                     children: [
                                                       Text(
                                                         drug["hour"],
                                                         style: const TextStyle(
                                                             fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                                                FontWeight.bold,
+                                                            fontSize: 15),
                                                       ),
                                                       const Text(" | "),
-                                                      Text(drug["quantity"]
-                                                          .toString()),
+                                                      Text(
+                                                        drug["quantity"]
+                                                            .toString(),
+                                                        style: const TextStyle(
+                                                            fontSize: 15),
+                                                      ),
                                                       const SizedBox(width: 5),
-                                                      Text(measureRepository
-                                                          .getAbrevTranslatedMeasure(
-                                                              Measure.values[drug[
-                                                                  "measure"]])),
+                                                      Text(
+                                                        measureRepository
+                                                            .getAbrevTranslatedMeasure(
+                                                                Measure.values[drug[
+                                                                    "measure"]]),
+                                                        style: const TextStyle(
+                                                            fontSize: 15),
+                                                      ),
                                                     ],
                                                   ),
                                                 ],
@@ -263,33 +293,54 @@ class DrugListPage extends StatelessWidget {
                                             margin:
                                                 const EdgeInsets.only(top: 20),
                                             child: ListTile(
+                                              onTap: () => {
+                                                Navigator.pushNamed(
+                                                    context, '/drugDetail',
+                                                    arguments: {
+                                                      "drug": drug,
+                                                      "isEdit": true
+                                                    })
+                                              },
                                               title: Row(
                                                 mainAxisAlignment:
                                                     MainAxisAlignment
                                                         .spaceBetween,
                                                 children: [
-                                                  Text(drug['name'].length <= 30
-                                                      ? drug['name']
-                                                      : drug['name'].substring(
-                                                              0, 30) +
-                                                          '...'),
+                                                  Text(
+                                                    drug['name'].length <= 15
+                                                        ? drug['name']
+                                                        : drug['name']
+                                                                .substring(
+                                                                    0, 15) +
+                                                            '...',
+                                                    style: const TextStyle(
+                                                        fontSize: 15),
+                                                  ),
                                                   Row(
                                                     children: [
                                                       Text(
                                                         drug["hour"],
                                                         style: const TextStyle(
                                                             fontWeight:
-                                                                FontWeight
-                                                                    .bold),
+                                                                FontWeight.bold,
+                                                            fontSize: 15),
                                                       ),
                                                       const Text(" | "),
-                                                      Text(drug["quantity"]
-                                                          .toString()),
+                                                      Text(
+                                                        drug["quantity"]
+                                                            .toString(),
+                                                        style: const TextStyle(
+                                                            fontSize: 15),
+                                                      ),
                                                       const SizedBox(width: 5),
-                                                      Text(measureRepository
-                                                          .getAbrevTranslatedMeasure(
-                                                              Measure.values[drug[
-                                                                  "measure"]])),
+                                                      Text(
+                                                        measureRepository
+                                                            .getAbrevTranslatedMeasure(
+                                                                Measure.values[drug[
+                                                                    "measure"]]),
+                                                        style: const TextStyle(
+                                                            fontSize: 15),
+                                                      ),
                                                     ],
                                                   ),
                                                 ],
@@ -334,7 +385,8 @@ class DrugListPage extends StatelessWidget {
               ),
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pushNamed(context, "/drugDetail");
+                  Navigator.pushNamed(context, "/drugDetail",
+                      arguments: {"isEdit": false});
                 },
                 style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFFA076F9),
