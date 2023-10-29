@@ -53,8 +53,15 @@ class DrugRepository {
     }
   }
 
-  void deleteDrug(id, context) {
-    firestore.collection('drugs').doc(id).delete();
+  void deleteDrug(id, context) async {
+    var drugsToRemove = await firestore
+        .collection("drugs")
+        .where("drugId", isEqualTo: id)
+        .get();
+
+    for (var drug in drugsToRemove.docs) {
+      await firestore.collection("drugs").doc(drug.id).delete();
+    }
   }
 
   String formatTimeOfDay(TimeOfDay time) {
@@ -78,7 +85,10 @@ class DrugRepository {
     }
 
     for (var drug in drugs.docs) {
-      result.add({"hour": drug["hour"], "quantity": drug["quantity"]});
+      result.add({
+        "hour": _parseTimeOfDay(drug["hour"]),
+        "quantity": drug["quantity"]
+      });
     }
 
     return result;
@@ -100,7 +110,7 @@ class DrugRepository {
 
       var drugsToRemove = await firestore
           .collection("drugs")
-          .where("date", isLessThanOrEqualTo: drugDate)
+          .where("date", isGreaterThanOrEqualTo: drugDate)
           .get();
       for (var drug in drugsToRemove.docs) {
         await firestore.collection("drugs").doc(drug.id).delete();
@@ -122,7 +132,7 @@ class DrugRepository {
             "note": confirmedDrug.note,
             "date": formatter.format(date),
             "hour": formatTimeOfDay(hour),
-            "quantity": int.parse(quantity ?? "1"),
+            "quantity": int.parse(quantity.toString()),
             "drugId": confirmedDrug.drugId
           };
 
@@ -133,5 +143,13 @@ class DrugRepository {
       messaging.showAlertDialog(ex.toString(), context);
       rethrow;
     }
+  }
+
+  TimeOfDay _parseTimeOfDay(String timeString) {
+    List<String> parts = timeString.split(':');
+
+    int hour = int.parse(parts[0]);
+    int minute = int.parse(parts[1]);
+    return TimeOfDay(hour: hour, minute: minute);
   }
 }

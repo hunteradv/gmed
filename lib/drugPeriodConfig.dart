@@ -20,6 +20,20 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
   late DrugDto drug;
   var isEdit = false;
 
+  @override
+  Future<void> didChangeDependencies() async {
+    super.didChangeDependencies();
+
+    Map<String, dynamic>? arguments =
+        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
+    if (arguments != null) {
+      drug = arguments['drug'];
+      dateFirst = drug.initialDate ?? dateFirst;
+      dateLast = drug.finalDate ?? dateLast;
+      isEdit = arguments["isEdit"];
+    }
+  }
+
   Future<void> _selectDateFirst(BuildContext context) async {
     var pickedDate = await showDatePicker(
         context: context,
@@ -50,15 +64,6 @@ class _DrugPeriodConfigState extends State<DrugPeriodConfigPage> {
 
   @override
   Widget build(BuildContext context) {
-    Map<String, dynamic>? arguments =
-        ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
-    if (arguments != null) {
-      drug = arguments['drug'];
-      dateFirst = drug.initialDate ?? dateFirst;
-      dateLast = drug.finalDate ?? dateLast;
-      isEdit = arguments["isEdit"];
-    }
-
     return Scaffold(
       body: Container(
         color: const Color(0xFFA076F9),

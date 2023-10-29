@@ -43,28 +43,29 @@ class DrugListPage extends StatelessWidget {
   }
 
   Future<List<DrugDto>> getDrug(filter) async {
-    drugs = [];
-    var url = "https://bula.vercel.app/pesquisar?nome=$filter";
-    var response = await http.get(Uri.parse(url));
-    Map<String, dynamic> jsonData = jsonDecode(response.body);
-    List<dynamic> data = jsonData["content"];
+    if (filter.length >= 3) {
+      drugs = [];
+      var url = "https://bula.vercel.app/pesquisar?nome=$filter";
+      var response = await http.get(Uri.parse(url));
+      Map<String, dynamic> jsonData = jsonDecode(response.body);
+      List<dynamic> data = jsonData["content"];
 
-    for (var drugInList in data) {
-      var drug = DrugDto(
-          name: drugInList["nomeProduto"].toString().toLowerCase(),
-          leaflet: drugInList["idBulaPacienteProtegido"]);
-      drugs.add(drug);
-    }
-
-    distinctDrugs = drugs.fold([], (List<DrugDto> accumulator, DrugDto drug) {
-      if (!accumulator.any((existingDrug) =>
-          removeDiacritics((existingDrug.name ?? "").toLowerCase()) ==
-          removeDiacritics((drug.name ?? "").toLowerCase()))) {
-        accumulator.add(drug);
+      for (var drugInList in data) {
+        var drug = DrugDto(
+            name: drugInList["nomeProduto"].toString().toLowerCase(),
+            leaflet: drugInList["idBulaPacienteProtegido"]);
+        drugs.add(drug);
       }
-      return accumulator;
-    });
 
+      distinctDrugs = drugs.fold([], (List<DrugDto> accumulator, DrugDto drug) {
+        if (!accumulator.any((existingDrug) =>
+            removeDiacritics((existingDrug.name ?? "").toLowerCase()) ==
+            removeDiacritics((drug.name ?? "").toLowerCase()))) {
+          accumulator.add(drug);
+        }
+        return accumulator;
+      });
+    }
     return distinctDrugs;
   }
 
@@ -189,76 +190,70 @@ class DrugListPage extends StatelessWidget {
                                       bool taken = drug.data()['taken'];
                                       return !taken;
                                     })
-                                    .map((drug) => Dismissible(
-                                          onDismissed: (direction) =>
-                                              deleteDrug(drug.id, context),
-                                          key: Key(drug.id),
-                                          child: Card(
-                                            elevation: 2,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
+                                    .map((drug) => Card(
+                                          elevation: 2,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          margin:
+                                              const EdgeInsets.only(top: 20),
+                                          child: ListTile(
+                                            onTap: () {
+                                              Navigator.pushNamed(
+                                                  context, '/drugDetail',
+                                                  arguments: {
+                                                    "drug": drug,
+                                                    "isEdit": true
+                                                  });
+                                            },
+                                            title: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  drug['name'].length <= 15
+                                                      ? drug['name']
+                                                      : drug['name'].substring(
+                                                              0, 15) +
+                                                          '...',
+                                                  style: const TextStyle(
+                                                      fontSize: 15),
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      drug["hour"],
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 15),
+                                                    ),
+                                                    const Text(" | "),
+                                                    Text(
+                                                      drug["quantity"]
+                                                          .toString(),
+                                                      style: const TextStyle(
+                                                          fontSize: 15),
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Text(
+                                                      measureRepository
+                                                          .getAbrevTranslatedMeasure(
+                                                              Measure.values[drug[
+                                                                  "measure"]]),
+                                                      style: const TextStyle(
+                                                          fontSize: 15),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
                                             ),
-                                            margin:
-                                                const EdgeInsets.only(top: 20),
-                                            child: ListTile(
-                                              onTap: () {
-                                                Navigator.pushNamed(
-                                                    context, '/drugDetail',
-                                                    arguments: {
-                                                      "drug": drug,
-                                                      "isEdit": true
-                                                    });
-                                              },
-                                              title: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    drug['name'].length <= 15
-                                                        ? drug['name']
-                                                        : drug['name']
-                                                                .substring(
-                                                                    0, 15) +
-                                                            '...',
-                                                    style: const TextStyle(
-                                                        fontSize: 15),
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Text(
-                                                        drug["hour"],
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 15),
-                                                      ),
-                                                      const Text(" | "),
-                                                      Text(
-                                                        drug["quantity"]
-                                                            .toString(),
-                                                        style: const TextStyle(
-                                                            fontSize: 15),
-                                                      ),
-                                                      const SizedBox(width: 5),
-                                                      Text(
-                                                        measureRepository
-                                                            .getAbrevTranslatedMeasure(
-                                                                Measure.values[drug[
-                                                                    "measure"]]),
-                                                        style: const TextStyle(
-                                                            fontSize: 15),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                              trailing: Checkbox(
-                                                onChanged: (bool? value) =>
-                                                    setTaken(drug.id),
-                                                value: drug['taken'],
-                                              ),
+                                            trailing: Checkbox(
+                                              onChanged: (bool? value) =>
+                                                  setTaken(drug.id),
+                                              value: drug['taken'],
                                             ),
                                           ),
                                         ))
@@ -280,75 +275,69 @@ class DrugListPage extends StatelessWidget {
                                       bool taken = drug.data()['taken'];
                                       return taken;
                                     })
-                                    .map((drug) => Dismissible(
-                                          onDismissed: (direction) =>
-                                              deleteDrug(drug.id, context),
-                                          key: Key(drug.id),
-                                          child: Card(
-                                            elevation: 2,
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12),
+                                    .map((drug) => Card(
+                                          elevation: 2,
+                                          shape: RoundedRectangleBorder(
+                                            borderRadius:
+                                                BorderRadius.circular(12),
+                                          ),
+                                          margin:
+                                              const EdgeInsets.only(top: 20),
+                                          child: ListTile(
+                                            onTap: () => {
+                                              Navigator.pushNamed(
+                                                  context, '/drugDetail',
+                                                  arguments: {
+                                                    "drug": drug,
+                                                    "isEdit": true
+                                                  })
+                                            },
+                                            title: Row(
+                                              mainAxisAlignment:
+                                                  MainAxisAlignment
+                                                      .spaceBetween,
+                                              children: [
+                                                Text(
+                                                  drug['name'].length <= 15
+                                                      ? drug['name']
+                                                      : drug['name'].substring(
+                                                              0, 15) +
+                                                          '...',
+                                                  style: const TextStyle(
+                                                      fontSize: 15),
+                                                ),
+                                                Row(
+                                                  children: [
+                                                    Text(
+                                                      drug["hour"],
+                                                      style: const TextStyle(
+                                                          fontWeight:
+                                                              FontWeight.bold,
+                                                          fontSize: 15),
+                                                    ),
+                                                    const Text(" | "),
+                                                    Text(
+                                                      drug["quantity"]
+                                                          .toString(),
+                                                      style: const TextStyle(
+                                                          fontSize: 15),
+                                                    ),
+                                                    const SizedBox(width: 5),
+                                                    Text(
+                                                      measureRepository
+                                                          .getAbrevTranslatedMeasure(
+                                                              Measure.values[drug[
+                                                                  "measure"]]),
+                                                      style: const TextStyle(
+                                                          fontSize: 15),
+                                                    ),
+                                                  ],
+                                                ),
+                                              ],
                                             ),
-                                            margin:
-                                                const EdgeInsets.only(top: 20),
-                                            child: ListTile(
-                                              onTap: () => {
-                                                Navigator.pushNamed(
-                                                    context, '/drugDetail',
-                                                    arguments: {
-                                                      "drug": drug,
-                                                      "isEdit": true
-                                                    })
-                                              },
-                                              title: Row(
-                                                mainAxisAlignment:
-                                                    MainAxisAlignment
-                                                        .spaceBetween,
-                                                children: [
-                                                  Text(
-                                                    drug['name'].length <= 15
-                                                        ? drug['name']
-                                                        : drug['name']
-                                                                .substring(
-                                                                    0, 15) +
-                                                            '...',
-                                                    style: const TextStyle(
-                                                        fontSize: 15),
-                                                  ),
-                                                  Row(
-                                                    children: [
-                                                      Text(
-                                                        drug["hour"],
-                                                        style: const TextStyle(
-                                                            fontWeight:
-                                                                FontWeight.bold,
-                                                            fontSize: 15),
-                                                      ),
-                                                      const Text(" | "),
-                                                      Text(
-                                                        drug["quantity"]
-                                                            .toString(),
-                                                        style: const TextStyle(
-                                                            fontSize: 15),
-                                                      ),
-                                                      const SizedBox(width: 5),
-                                                      Text(
-                                                        measureRepository
-                                                            .getAbrevTranslatedMeasure(
-                                                                Measure.values[drug[
-                                                                    "measure"]]),
-                                                        style: const TextStyle(
-                                                            fontSize: 15),
-                                                      ),
-                                                    ],
-                                                  ),
-                                                ],
-                                              ),
-                                              trailing: Checkbox(
-                                                onChanged: (bool? value) => {},
-                                                value: drug["taken"],
-                                              ),
+                                            trailing: Checkbox(
+                                              onChanged: (bool? value) => {},
+                                              value: drug["taken"],
                                             ),
                                           ),
                                         ))
@@ -400,26 +389,6 @@ class DrugListPage extends StatelessWidget {
         ),
       ),
     );
-  }
-
-  deleteDrug(String id, BuildContext context) async {
-    var response = await messaging.confirmYesNo(
-        "Tem certeza que deseja excluir? ao confirmar, todos os agendamentos desse medicamento serão excluidos",
-        context);
-
-    if (response == true) {
-      // ignore: use_build_context_synchronously
-      repository.deleteDrug(id, context);
-      // ignore: use_build_context_synchronously
-      messaging.showSnackBar("medicamento excluido", context);
-    } else {
-      // ignore: use_build_context_synchronously
-      messaging.showSnackBar("operação cancelada", context);
-      Timer(const Duration(milliseconds: 500), () {
-        Navigator.pushReplacement(
-            context, MaterialPageRoute(builder: ((context) => DrugListPage())));
-      });
-    }
   }
 
   void setTaken(id) {

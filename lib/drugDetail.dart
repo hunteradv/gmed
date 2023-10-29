@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:gmed/messaging.dart';
+import 'package:gmed/repository/drug_repository.dart';
 import 'package:intl/intl.dart';
+import 'package:url_launcher/url_launcher.dart';
 import 'model/drugDto.dart';
 import 'model/measure.dart';
 
@@ -22,6 +26,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
   var noteTxt = TextEditingController();
   Messaging messaging = Messaging();
   String? leaflet;
+  var repository = DrugRepository();
 
   final Map<Measure, String> measures = {
     Measure.milliliter: 'mililitro(s)',
@@ -31,7 +36,9 @@ class _DrugDetailState extends State<DrugDetailPage> {
   };
 
   @override
-  Widget build(BuildContext context) {
+  Future<void> didChangeDependencies() async {
+    super.didChangeDependencies();
+
     Map<String, dynamic>? arguments =
         ModalRoute.of(context)?.settings.arguments as Map<String, dynamic>?;
     if (arguments != null) {
@@ -59,7 +66,10 @@ class _DrugDetailState extends State<DrugDetailPage> {
       nameTxt.text = drug!.name ?? "";
       leaflet = drug!.leaflet;
     }
+  }
 
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Container(
@@ -154,7 +164,19 @@ class _DrugDetailState extends State<DrugDetailPage> {
                             }),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 30,
+                      ),
+                      GestureDetector(
+                        onTap: () => {openLeaflet()},
+                        child: const Text(
+                          "baixar bula",
+                          style: TextStyle(
+                              fontSize: 19,
+                              decoration: TextDecoration.underline),
+                        ),
+                      ),
+                      const SizedBox(
+                        height: 8,
                       ),
                       Container(
                         margin: const EdgeInsets.fromLTRB(40, 0, 40, 0),
@@ -174,7 +196,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
                         ),
                       ),
                       const SizedBox(
-                        height: 50,
+                        height: 30,
                       ),
                       ElevatedButton(
                         onPressed: () => {confirm(context)},
@@ -185,6 +207,30 @@ class _DrugDetailState extends State<DrugDetailPage> {
                           'seguir',
                           style: TextStyle(
                               fontSize: 24, fontFamily: 'montserratLight'),
+                        ),
+                      ),
+                      const SizedBox(height: 10),
+                      Visibility(
+                        visible: isEdit,
+                        child: Container(
+                          decoration: BoxDecoration(
+                              border: Border.all(color: Colors.red),
+                              borderRadius:
+                                  const BorderRadius.all(Radius.circular(5))),
+                          child: ElevatedButton(
+                            onPressed: () =>
+                                {deleteDrug(drug!.drugId!, context)},
+                            style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.white,
+                                fixedSize: const Size(240, 70)),
+                            child: const Text(
+                              'excluir',
+                              style: TextStyle(
+                                  fontSize: 24,
+                                  fontFamily: 'montserratLight',
+                                  color: Colors.red),
+                            ),
+                          ),
                         ),
                       ),
                     ],
@@ -222,5 +268,29 @@ class _DrugDetailState extends State<DrugDetailPage> {
 
     Navigator.pushNamed(context, "/drugPeriodConfig",
         arguments: {'drug': drug, "isEdit": isEdit});
+  }
+
+  deleteDrug(String drugId, BuildContext context) async {
+    var response = await messaging.confirmYesNo(
+        "Tem certeza que deseja excluir? ao confirmar, todos os agendamentos desse medicamento serão excluidos",
+        context);
+
+    if (response == true) {
+      // ignore: use_build_context_synchronously
+      repository.deleteDrug(drugId, context);
+      // ignore: use_build_context_synchronously
+      messaging.showSnackBar("medicamento excluido", context);
+
+      // ignore: use_build_context_synchronously
+      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
+    }
+  }
+
+  void openLeaflet() async {
+    //if (await canLaunchUrl(Uri.parse(drug!.leaflet!))) {
+    await launchUrl(Uri.parse(drug!.leaflet!));
+    // } else {
+    //   throw 'Não foi possível abrir o link: $drug!.leaflet!';
+    // }
   }
 }

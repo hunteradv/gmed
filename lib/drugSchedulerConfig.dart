@@ -19,7 +19,6 @@ class DrugSchedulerConfigPage extends StatefulWidget {
 }
 
 class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
-  var quantityControllers = <TextEditingController>[];
   List schedulerQuantityList = [];
   var drug = DrugDto();
   var messaging = Messaging();
@@ -28,6 +27,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   var measureRepository = DrugMeasureRepository();
   var leafletRepository = LeafletRepository();
   var isEdit = false;
+  var indexList = 0;
 
   @override
   Future<void> didChangeDependencies() async {
@@ -40,6 +40,14 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
       if (drug.drugId != null) {
         var scheduler =
             await drugRepository.getSchedulerAsync(drug.drugId!, drug.date!);
+
+        for (var item in scheduler) {
+          item = {
+            "hour": item["hour"],
+            "quantity": item["quantity"],
+            "index": indexList + 1
+          };
+        }
         setState(() {
           schedulerQuantityList = scheduler;
         });
@@ -109,9 +117,6 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                               ListView(
                                 shrinkWrap: true,
                                 children: schedulerQuantityList.map((item) {
-                                  var quantityController =
-                                      TextEditingController();
-                                  quantityControllers.add(quantityController);
                                   return Container(
                                       margin: const EdgeInsets.only(bottom: 10),
                                       child: Row(
@@ -149,29 +154,31 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                                   if (selectedTime != null) {
                                                     setState(() {
                                                       var quantity =
-                                                          int.tryParse(
-                                                              quantityController
-                                                                  .text);
+                                                          item["quantity"];
                                                       var indexSchedulerQuantityToReplace =
                                                           schedulerQuantityList
                                                               .indexWhere((element) =>
                                                                   element[
-                                                                      "hour"] ==
-                                                                  item["hour"]);
+                                                                      "index"] ==
+                                                                  item[
+                                                                      "index"]);
 
                                                       if (!indexSchedulerQuantityToReplace
                                                           .isNegative) {
                                                         schedulerQuantityList[
                                                             indexSchedulerQuantityToReplace] = {
                                                           "hour": selectedTime,
-                                                          "quantity": quantity
+                                                          "quantity": quantity,
+                                                          "index": item["index"]
                                                         };
                                                       }
                                                     });
                                                   }
                                                 },
                                                 child: Text(
-                                                  item["hour"].toString(),
+                                                  item["hour"]
+                                                      .format(context)
+                                                      .toString(),
                                                   style: const TextStyle(
                                                       color: Color(0xFF585858),
                                                       fontSize: 20),
@@ -197,19 +204,21 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                               ),
                                               child: TextField(
                                                 onChanged: (value) {
-                                                  var index =
-                                                      schedulerQuantityList
-                                                          .indexWhere(
-                                                              (element) =>
-                                                                  element[
-                                                                      "hour"] ==
-                                                                  item["hour"]);
+                                                  setState(() {
+                                                    var index =
+                                                        schedulerQuantityList
+                                                            .indexWhere((element) =>
+                                                                element[
+                                                                    "index"] ==
+                                                                item["index"]);
 
-                                                  schedulerQuantityList[index] =
-                                                      {
-                                                    "hour": item["hour"],
-                                                    "quantity": value
-                                                  };
+                                                    schedulerQuantityList[
+                                                        index] = {
+                                                      "index": item["index"],
+                                                      "hour": item["hour"],
+                                                      "quantity": value
+                                                    };
+                                                  });
                                                 },
                                                 decoration:
                                                     const InputDecoration(
@@ -217,14 +226,17 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                                       EdgeInsets.all(15),
                                                   hintText: 'quantidade',
                                                   hintStyle: TextStyle(
-                                                    fontSize: 14,
+                                                    fontSize: 12,
                                                     fontFamily:
                                                         'montserratLight',
                                                     color: Colors.grey,
                                                   ),
                                                   border: InputBorder.none,
                                                 ),
-                                                controller: quantityController,
+                                                controller:
+                                                    TextEditingController(
+                                                        text: item["quantity"]
+                                                            .toString()),
                                                 keyboardType:
                                                     TextInputType.number,
                                                 inputFormatters: <TextInputFormatter>[
@@ -258,8 +270,12 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                         shape: const CircleBorder()),
                                     onPressed: () {
                                       setState(() {
-                                        schedulerQuantityList
-                                            .add({"hour": TimeOfDay.now()});
+                                        indexList = indexList + 1;
+                                        schedulerQuantityList.add({
+                                          "index": indexList,
+                                          "hour": TimeOfDay.now(),
+                                          "quantity": ""
+                                        });
                                       });
                                     },
                                     child: const Icon(
@@ -323,7 +339,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
         finaldate:
             drug.finalDate ?? DateTime.now().add(const Duration(days: 1)),
         note: drug.note,
-        drugId: isEdit ? uuid.v4() : drug.drugId!);
+        drugId: isEdit ? drug.drugId! : uuid.v4());
 
     var dateList = <DateTime>[];
 
@@ -337,12 +353,14 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
     if (isEdit) {
       drugRepository.updateDrug(
           confirmedDrug, dateList, schedulerQuantityList, context, drug.date!);
+      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
+      messaging.showSnackBar("medicamento atualizado com sucesso!", context);
+    } else {
+      drugRepository.addDrug(
+          confirmedDrug, dateList, schedulerQuantityList, context);
+      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
+      messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
     }
-    drugRepository.addDrug(
-        confirmedDrug, dateList, schedulerQuantityList, context);
-
-    Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
-    messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
   }
 
   String enumToString(Measure enumValue) {
