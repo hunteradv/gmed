@@ -166,13 +166,16 @@ class _DrugDetailState extends State<DrugDetailPage> {
                       const SizedBox(
                         height: 30,
                       ),
-                      GestureDetector(
-                        onTap: () => {openLeaflet()},
-                        child: const Text(
-                          "baixar bula",
-                          style: TextStyle(
-                              fontSize: 19,
-                              decoration: TextDecoration.underline),
+                      Visibility(
+                        visible: isEdit,
+                        child: GestureDetector(
+                          onTap: () => {openLeaflet()},
+                          child: const Text(
+                            "baixar bula",
+                            style: TextStyle(
+                                fontSize: 19,
+                                decoration: TextDecoration.underline),
+                          ),
                         ),
                       ),
                       const SizedBox(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:gmed/messaging.dart';
 import 'package:gmed/model/measure.dart';
+import 'package:gmed/notification_manager.dart';
 import 'package:gmed/repository/drugMeasureRepository.dart';
 import 'package:gmed/repository/drug_repository.dart';
 import 'package:gmed/repository/leaflet_repository.dart';
@@ -28,6 +29,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   var leafletRepository = LeafletRepository();
   var isEdit = false;
   var indexList = 0;
+  final _notificationManager = NotificationManager();
 
   @override
   Future<void> didChangeDependencies() async {
@@ -353,13 +355,28 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
     if (isEdit) {
       drugRepository.updateDrug(
           confirmedDrug, dateList, schedulerQuantityList, context, drug.date!);
-      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
       messaging.showSnackBar("medicamento atualizado com sucesso!", context);
     } else {
       drugRepository.addDrug(
           confirmedDrug, dateList, schedulerQuantityList, context);
-      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
       messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
+      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
+
+      var schedulerCount = 0;
+      for (var date in dateList) {
+        for (var item in schedulerQuantityList) {
+          schedulerCount = schedulerCount + 1;
+          var hour = item["hour"];
+          final scheduledTime =
+              DateTime(date.year, date.month, date.day, hour.hour, hour.minute);
+          _notificationManager.scheduleNotification(
+              id: schedulerCount,
+              title: "Lembre-se de tomar seu medicamento",
+              body:
+                  "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
+              scheduledNotificationDateTime: scheduledTime);
+        }
+      }
     }
   }
 

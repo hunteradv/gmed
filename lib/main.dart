@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -9,6 +10,8 @@ import 'package:gmed/register.dart';
 import 'drugDetail.dart';
 import 'drugPeriodConfig.dart';
 import 'homePage.dart';
+import 'notification_manager.dart';
+import 'package:timezone/data/latest.dart' as tz;
 
 const firebaseConfig = FirebaseOptions(
     apiKey: "AIzaSyCt3xUljE6HDfF6KDuhsI32N8rRBdo4OdU",
@@ -18,9 +21,14 @@ const firebaseConfig = FirebaseOptions(
     messagingSenderId: "561345286170",
     appId: "1:561345286170:web:b46ac4290edf8468f7c1a3");
 
+var auth = FirebaseAuth.instance;
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp(options: firebaseConfig);
+
+  NotificationManager().initNotification();
+  tz.initializeTimeZones();
   runApp(const MyApp());
 }
 
@@ -29,10 +37,12 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    var user = auth.currentUser;
+
     return MaterialApp(
       theme: ThemeData(fontFamily: 'montserratLight'),
       debugShowCheckedModeBanner: false,
-      initialRoute: '/homepage',
+      initialRoute: user != null ? "/drugList" : '/homepage',
       routes: {
         '/homepage': (context) => const HomePage(),
         '/register': (context) => const RegisterPage(),
