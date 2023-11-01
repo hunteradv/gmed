@@ -34,7 +34,8 @@ class NotificationManager {
       String? title,
       String? body,
       String? payLoad,
-      required DateTime scheduledNotificationDateTime}) async {
+      required DateTime scheduledNotificationDateTime,
+      String? drugId}) async {
     return notificationsPlugin.zonedSchedule(
         id,
         title,
@@ -46,6 +47,18 @@ class NotificationManager {
         await notificationDetails(),
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
-            UILocalNotificationDateInterpretation.absoluteTime);
+            UILocalNotificationDateInterpretation.absoluteTime,
+        payload: drugId);
+  }
+
+  Future cancelNotificationsByPayload(String payload) async {
+    final List<PendingNotificationRequest> pendingNotifications =
+        await notificationsPlugin.pendingNotificationRequests();
+
+    for (var notification in pendingNotifications) {
+      if (notification.payload != null && notification.payload == payload) {
+        await notificationsPlugin.cancel(notification.id);
+      }
+    }
   }
 }

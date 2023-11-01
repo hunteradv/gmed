@@ -355,29 +355,33 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
     if (isEdit) {
       drugRepository.updateDrug(
           confirmedDrug, dateList, schedulerQuantityList, context, drug.date!);
+      await _notificationManager
+          .cancelNotificationsByPayload(confirmedDrug.drugId);
       messaging.showSnackBar("medicamento atualizado com sucesso!", context);
     } else {
       drugRepository.addDrug(
           confirmedDrug, dateList, schedulerQuantityList, context);
       messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
-      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
+    }
 
-      var schedulerCount = 0;
-      for (var date in dateList) {
-        for (var item in schedulerQuantityList) {
-          schedulerCount = schedulerCount + 1;
-          var hour = item["hour"];
-          final scheduledTime =
-              DateTime(date.year, date.month, date.day, hour.hour, hour.minute);
-          _notificationManager.scheduleNotification(
-              id: schedulerCount,
-              title: "Lembre-se de tomar seu medicamento",
-              body:
-                  "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
-              scheduledNotificationDateTime: scheduledTime);
-        }
+    var schedulerCount = 0;
+    for (var date in dateList) {
+      for (var item in schedulerQuantityList) {
+        schedulerCount = schedulerCount + 1;
+        var hour = item["hour"];
+        final scheduledTime =
+            DateTime(date.year, date.month, date.day, hour.hour, hour.minute);
+        _notificationManager.scheduleNotification(
+            id: schedulerCount,
+            title: "Lembre-se de tomar seu medicamento",
+            body:
+                "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
+            scheduledNotificationDateTime: scheduledTime,
+            payLoad: confirmedDrug.drugId);
       }
     }
+
+    Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
   }
 
   String enumToString(Measure enumValue) {

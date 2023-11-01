@@ -72,6 +72,10 @@ class _RegisterPageState extends State<RegisterPage> {
       await auth.createUserWithEmailAndPassword(
           email: emailTxt.text, password: passwordTxt.text);
 
+      if (auth.currentUser != null) {
+        await auth.currentUser!.updateDisplayName(nameTxt.text);
+      }
+
       // ignore: use_build_context_synchronously
       Navigator.of(context).pushNamed('/login');
     } on Exception catch (e) {
