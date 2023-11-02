@@ -1,9 +1,13 @@
+import 'dart:convert';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../messaging.dart';
 import '../model/drug.dart';
+import '../model/drugDto.dart';
+import 'package:http/http.dart' as http;
 
 class DrugRepository {
   FirebaseFirestore firestore = FirebaseFirestore.instance;
@@ -151,5 +155,45 @@ class DrugRepository {
     int hour = int.parse(parts[0]);
     int minute = int.parse(parts[1]);
     return TimeOfDay(hour: hour, minute: minute);
+  }
+
+  String removeDiacritics(String str) {
+    var withDia =
+        'ÀÁÂÃÄÅàáâãäåÒÓÔÕÕÖØòóôõöøÈÉÊËèéêëðÇçÐÌÍÎÏìíîïÙÚÛÜùúûüÑñŠšŸÿýŽž';
+    var withoutDia =
+        'AAAAAAaaaaaaOOOOOOOooooooEEEEeeeeeCcDIIIIiiiiUUUUuuuuNnSsYyyZz';
+
+    for (int i = 0; i < withDia.length; i++) {
+      str = str.replaceAll(withDia[i], withoutDia[i]);
+    }
+
+    return str;
+  }
+
+  Future<List<DrugDto>> getSearchAutoDrug(String searchText) async {
+    List<DrugDto> drugs = [];
+    var url = "https://bula.vercel.app/pesquisar?nome=$searchText";
+    var response = await http.get(Uri.parse(url));
+    Map<String, dynamic> jsonData = jsonDecode(response.body);
+    List<dynamic> data = jsonData["content"];
+
+    for (var drugInList in data) {
+      var drug = DrugDto(
+          name: drugInList["nomeProduto"].toString().toLowerCase(),
+          leaflet: drugInList["idBulaPacienteProtegido"]);
+      drugs.add(drug);
+    }
+
+    List<DrugDto> distinctDrugs =
+        drugs.fold([], (List<DrugDto> accumulator, DrugDto drug) {
+      if (!accumulator.any((existingDrug) =>
+          removeDiacritics((existingDrug.name ?? "").toLowerCase()) ==
+          removeDiacritics((drug.name ?? "").toLowerCase()))) {
+        accumulator.add(drug);
+      }
+      return accumulator;
+    });
+
+    return distinctDrugs;
   }
 }

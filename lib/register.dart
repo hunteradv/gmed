@@ -78,6 +78,7 @@ class _RegisterPageState extends State<RegisterPage> {
 
       // ignore: use_build_context_synchronously
       Navigator.of(context).pushNamed('/login');
+      messaging.showSnackBar("usuário cadastrado com sucesso!", context);
     } on Exception catch (e) {
       if (e.toString().contains('wrong-password')) {
         messaging.showAlertDialog('senha inválida', context);

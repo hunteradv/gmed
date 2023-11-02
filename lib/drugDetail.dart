@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'model/drugDto.dart';
 import 'model/measure.dart';
+import 'notification_manager.dart';
 
 class DrugDetailPage extends StatefulWidget {
   const DrugDetailPage({super.key});
@@ -27,6 +28,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
   Messaging messaging = Messaging();
   String? leaflet;
   var repository = DrugRepository();
+  final _notificationManager = NotificationManager();
 
   final Map<Measure, String> measures = {
     Measure.milliliter: 'mililitro(s)',
@@ -167,7 +169,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
                         height: 30,
                       ),
                       Visibility(
-                        visible: isEdit,
+                        visible: isEdit && drug!.leaflet != null,
                         child: GestureDetector(
                           onTap: () => {openLeaflet()},
                           child: const Text(
@@ -247,7 +249,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
     );
   }
 
-  confirm(context) {
+  confirm(context) async {
     if (nameTxt.text.isEmpty) {
       messaging.showAlertDialog("é obrigatório definir um nome", context);
       return;
@@ -257,6 +259,12 @@ class _DrugDetailState extends State<DrugDetailPage> {
       messaging.showAlertDialog(
           "é obrigatório selecionar a unidade de medida", context);
       return;
+    }
+
+    if (leaflet == null) {
+      var drugs = await repository.getSearchAutoDrug(nameTxt.text);
+      leaflet =
+          drugs.where((element) => element.name == nameTxt.text).first.leaflet;
     }
 
     drug = DrugDto(
@@ -279,6 +287,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
         context);
 
     if (response == true) {
+      _notificationManager.cancelNotificationsByPayload(drugId);
       // ignore: use_build_context_synchronously
       repository.deleteDrug(drugId, context);
       // ignore: use_build_context_synchronously
@@ -290,10 +299,6 @@ class _DrugDetailState extends State<DrugDetailPage> {
   }
 
   void openLeaflet() async {
-    //if (await canLaunchUrl(Uri.parse(drug!.leaflet!))) {
     await launchUrl(Uri.parse(drug!.leaflet!));
-    // } else {
-    //   throw 'Não foi possível abrir o link: $drug!.leaflet!';
-    // }
   }
 }

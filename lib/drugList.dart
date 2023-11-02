@@ -80,11 +80,21 @@ class DrugListPage extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            const SizedBox(
-              height: 10,
+            Row(
+              children: [
+                Container(
+                    margin: const EdgeInsets.fromLTRB(25, 40, 0, 0),
+                    child: GestureDetector(
+                      onTap: () => {logout(context)},
+                      child: const Icon(
+                        Icons.exit_to_app,
+                        color: Colors.white,
+                      ),
+                    )),
+              ],
             ),
             const Padding(
-              padding: EdgeInsets.all(20),
+              padding: EdgeInsets.all(5),
               child: Column(
                 children: [
                   Text(
@@ -393,5 +403,11 @@ class DrugListPage extends StatelessWidget {
 
   void setTaken(id) {
     firestore.collection('drugs').doc(id).update({'taken': true});
+  }
+
+  void logout(BuildContext context) {
+    auth.signOut();
+    Navigator.of(context)
+        .pushNamedAndRemoveUntil("/homepage", (route) => false);
   }
 }

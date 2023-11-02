@@ -151,8 +151,10 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
                                                   final selectedTime =
                                                       await showTimePicker(
                                                           context: context,
-                                                          initialTime:
-                                                              TimeOfDay.now());
+                                                          initialTime: isEdit
+                                                              ? item["hour"]
+                                                              : TimeOfDay
+                                                                  .now());
                                                   if (selectedTime != null) {
                                                     setState(() {
                                                       var quantity =
@@ -335,7 +337,9 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
         name: drug.name ?? "",
         leaflet: isEdit
             ? drug.leaflet
-            : await leafletRepository.getLeafletLink(drug.leaflet ?? ""),
+            : drug.leaflet != null
+                ? await leafletRepository.getLeafletLink(drug.leaflet ?? "")
+                : null,
         measure: drug.measure ?? Measure.capsule,
         initialDate: drug.initialDate ?? DateTime.now(),
         finaldate:
@@ -362,29 +366,33 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
       drugRepository.addDrug(
           confirmedDrug, dateList, schedulerQuantityList, context);
       messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
-    }
 
-    var schedulerCount = 0;
-    for (var date in dateList) {
-      for (var item in schedulerQuantityList) {
-        schedulerCount = schedulerCount + 1;
-        var hour = item["hour"];
-        final scheduledTime =
-            DateTime(date.year, date.month, date.day, hour.hour, hour.minute);
-        _notificationManager.scheduleNotification(
-            id: schedulerCount,
-            title: "Lembre-se de tomar seu medicamento",
-            body:
-                "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
-            scheduledNotificationDateTime: scheduledTime,
-            payLoad: confirmedDrug.drugId);
+      var schedulerCount = 0;
+      for (var date in dateList) {
+        for (var item in schedulerQuantityList) {
+          schedulerCount = schedulerCount + 1;
+          var hour = item["hour"];
+          final scheduledTime =
+              DateTime(date.year, date.month, date.day, hour.hour, hour.minute);
+          if (scheduledTime.isBefore(DateTime.now()) ||
+              scheduledTime.isAtSameMomentAs(DateTime.now())) {
+            continue;
+          }
+          _notificationManager.scheduleNotification(
+              id: schedulerCount,
+              title: "Lembre-se de tomar seu medicamento",
+              body:
+                  "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
+              scheduledNotificationDateTime: scheduledTime,
+              payLoad: confirmedDrug.drugId);
+        }
       }
+
+      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
     }
 
-    Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
-  }
-
-  String enumToString(Measure enumValue) {
-    return enumValue.toString().split('.').last;
+    String enumToString(Measure enumValue) {
+      return enumValue.toString().split('.').last;
+    }
   }
 }

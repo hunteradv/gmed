@@ -34,8 +34,7 @@ class NotificationManager {
       String? title,
       String? body,
       String? payLoad,
-      required DateTime scheduledNotificationDateTime,
-      String? drugId}) async {
+      required DateTime scheduledNotificationDateTime}) async {
     return notificationsPlugin.zonedSchedule(
         id,
         title,
@@ -48,7 +47,7 @@ class NotificationManager {
         androidAllowWhileIdle: true,
         uiLocalNotificationDateInterpretation:
             UILocalNotificationDateInterpretation.absoluteTime,
-        payload: drugId);
+        payload: payLoad);
   }
 
   Future cancelNotificationsByPayload(String payload) async {
