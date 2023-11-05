@@ -69,7 +69,7 @@ class HomePage extends StatelessWidget {
                     style: TextStyle(
                         color: Color(0xFF585858),
                         fontSize: 17,
-                        fontFamily: 'montserratLight'),
+                        decoration: TextDecoration.underline),
                   ),
                 ),
               ),
@@ -83,7 +83,7 @@ class HomePage extends StatelessWidget {
                     style: TextStyle(
                         color: Color(0xFF585858),
                         fontSize: 17,
-                        fontFamily: 'montserratLight'),
+                        decoration: TextDecoration.underline),
                   ),
                 ),
               ),
