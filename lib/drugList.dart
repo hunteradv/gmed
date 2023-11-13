@@ -371,17 +371,8 @@ class DrugListPage extends StatelessWidget {
         child: Container(
           margin: const EdgeInsets.fromLTRB(35, 0, 35, 0),
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            mainAxisAlignment: MainAxisAlignment.end,
             children: [
-              ElevatedButton(
-                onPressed: () {},
-                style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFA076F9),
-                    fixedSize: const Size(60, 60),
-                    shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50))),
-                child: const Icon(Icons.camera_alt),
-              ),
               ElevatedButton(
                 onPressed: () {
                   Navigator.pushNamed(context, "/drugDetail",
@@ -391,7 +382,7 @@ class DrugListPage extends StatelessWidget {
                     backgroundColor: const Color(0xFFA076F9),
                     fixedSize: const Size(60, 60),
                     shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(50))),
+                        borderRadius: BorderRadius.circular(100))),
                 child: const Icon(Icons.add),
               )
             ],
