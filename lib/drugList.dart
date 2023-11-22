@@ -223,10 +223,10 @@ class DrugListPage extends StatelessWidget {
                                                       .spaceBetween,
                                               children: [
                                                 Text(
-                                                  drug['name'].length <= 15
+                                                  drug['name'].length <= 13
                                                       ? drug['name']
                                                       : drug['name'].substring(
-                                                              0, 15) +
+                                                              0, 13) +
                                                           '...',
                                                   style: const TextStyle(
                                                       fontSize: 15),
@@ -308,10 +308,10 @@ class DrugListPage extends StatelessWidget {
                                                       .spaceBetween,
                                               children: [
                                                 Text(
-                                                  drug['name'].length <= 15
+                                                  drug['name'].length <= 13
                                                       ? drug['name']
                                                       : drug['name'].substring(
-                                                              0, 15) +
+                                                              0, 13) +
                                                           '...',
                                                   style: const TextStyle(
                                                       fontSize: 15),

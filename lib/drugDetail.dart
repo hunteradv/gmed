@@ -263,8 +263,10 @@ class _DrugDetailState extends State<DrugDetailPage> {
 
     if (leaflet == null) {
       var drugs = await repository.getSearchAutoDrug(nameTxt.text);
-      leaflet =
-          drugs.where((element) => element.name == nameTxt.text).first.leaflet;
+      leaflet = drugs
+          .where((element) => element.name == nameTxt.text)
+          .firstOrNull
+          ?.leaflet;
     }
 
     drug = DrugDto(

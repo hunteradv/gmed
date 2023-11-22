@@ -98,8 +98,13 @@ class DrugRepository {
     return result;
   }
 
-  void updateDrug(Drug confirmedDrug, List<DateTime> dateList,
-      List schedulerQuantityList, context, String drugDate) async {
+  void updateDrug(
+      Drug confirmedDrug,
+      List<DateTime> dateList,
+      List schedulerQuantityList,
+      context,
+      String drugDate,
+      String drugId) async {
     try {
       if (dateList.isEmpty) {
         throw Exception("erro ao tentar adicionar o medicamento");
@@ -115,6 +120,7 @@ class DrugRepository {
       var drugsToRemove = await firestore
           .collection("drugs")
           .where("date", isGreaterThanOrEqualTo: drugDate)
+          .where("drugId", isEqualTo: drugId)
           .get();
       for (var drug in drugsToRemove.docs) {
         await firestore.collection("drugs").doc(drug.id).delete();

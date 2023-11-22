@@ -357,8 +357,8 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
     }
 
     if (isEdit) {
-      drugRepository.updateDrug(
-          confirmedDrug, dateList, schedulerQuantityList, context, drug.date!);
+      drugRepository.updateDrug(confirmedDrug, dateList, schedulerQuantityList,
+          context, drug.date!, drug.drugId!);
       await _notificationManager
           .cancelNotificationsByPayload(confirmedDrug.drugId);
       messaging.showSnackBar("medicamento atualizado com sucesso!", context);
@@ -366,33 +366,29 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
       drugRepository.addDrug(
           confirmedDrug, dateList, schedulerQuantityList, context);
       messaging.showSnackBar("medicamento cadastrado com sucesso!", context);
+    }
 
-      var schedulerCount = 0;
-      for (var date in dateList) {
-        for (var item in schedulerQuantityList) {
-          schedulerCount = schedulerCount + 1;
-          var hour = item["hour"];
-          final scheduledTime =
-              DateTime(date.year, date.month, date.day, hour.hour, hour.minute);
-          if (scheduledTime.isBefore(DateTime.now()) ||
-              scheduledTime.isAtSameMomentAs(DateTime.now())) {
-            continue;
-          }
-          _notificationManager.scheduleNotification(
-              id: schedulerCount,
-              title: "Lembre-se de tomar seu medicamento",
-              body:
-                  "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
-              scheduledNotificationDateTime: scheduledTime,
-              payLoad: confirmedDrug.drugId);
+    var schedulerCount = 0;
+    for (var date in dateList) {
+      for (var item in schedulerQuantityList) {
+        schedulerCount = schedulerCount + 1;
+        var hour = item["hour"];
+        final scheduledTime =
+            DateTime(date.year, date.month, date.day, hour.hour, hour.minute);
+        if (scheduledTime.isBefore(DateTime.now()) ||
+            scheduledTime.isAtSameMomentAs(DateTime.now())) {
+          continue;
         }
+        _notificationManager.scheduleNotification(
+            id: schedulerCount,
+            title: "Lembre-se de tomar seu medicamento",
+            body:
+                "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
+            scheduledNotificationDateTime: scheduledTime,
+            payLoad: confirmedDrug.drugId);
       }
-
-      Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
     }
 
-    String enumToString(Measure enumValue) {
-      return enumValue.toString().split('.').last;
-    }
+    Navigator.pushNamedAndRemoveUntil(context, "/drugList", (route) => false);
   }
 }
