@@ -175,6 +175,7 @@ class DrugListPage extends StatelessWidget {
                         .collection("drugs")
                         .where("userId", isEqualTo: auth.currentUser!.uid)
                         .where("date", isEqualTo: dateFormated)
+                        .orderBy("hour", descending: false)
                         .snapshots(),
                     builder: (context, snapshot) {
                       if (!snapshot.hasData) {

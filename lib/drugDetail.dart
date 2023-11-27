@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:gmed/messaging.dart';
 import 'package:gmed/repository/drug_repository.dart';
+import 'package:gmed/repository/leaflet_repository.dart';
 import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'model/drugDto.dart';
@@ -29,6 +30,7 @@ class _DrugDetailState extends State<DrugDetailPage> {
   String? leaflet;
   var repository = DrugRepository();
   final _notificationManager = NotificationManager();
+  final _leafletRepository = LeafletRepository();
 
   final Map<Measure, String> measures = {
     Measure.milliliter: 'mililitro(s)',
@@ -301,6 +303,9 @@ class _DrugDetailState extends State<DrugDetailPage> {
   }
 
   void openLeaflet() async {
-    await launchUrl(Uri.parse(drug!.leaflet!));
+    if (drug!.leaflet != null) {
+      var link = await _leafletRepository.getLeafletLink(drug!.leaflet!);
+      await launchUrl(Uri.parse(link));
+    }
   }
 }

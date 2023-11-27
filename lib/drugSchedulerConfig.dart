@@ -26,7 +26,6 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
   var drugRepository = DrugRepository();
   var uuid = const Uuid();
   var measureRepository = DrugMeasureRepository();
-  var leafletRepository = LeafletRepository();
   var isEdit = false;
   var indexList = 0;
   final _notificationManager = NotificationManager();
@@ -331,15 +330,24 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
     if (quantityList.length < hourList.length) {
       messaging.showAlertDialog(
           "é necessário inserir a quantidade em todos os registros", context);
+      return;
+    }
+
+    if (quantityList.any((element) => element == "")) {
+      messaging.showAlertDialog(
+          "é necessário inserir a quantidade em todos os registros", context);
+      return;
+    }
+
+    if (hourList.any((element) => element == "")) {
+      messaging.showAlertDialog(
+          "é necessário inserir a hora para todos os registros", context);
+      return;
     }
 
     var confirmedDrug = Drug(
         name: drug.name ?? "",
-        leaflet: isEdit
-            ? drug.leaflet
-            : drug.leaflet != null
-                ? await leafletRepository.getLeafletLink(drug.leaflet ?? "")
-                : null,
+        leaflet: drug.leaflet,
         measure: drug.measure ?? Measure.capsule,
         initialDate: drug.initialDate ?? DateTime.now(),
         finaldate:
@@ -383,7 +391,7 @@ class _DrugSchedulerConfigPage extends State<DrugSchedulerConfigPage> {
             id: schedulerCount,
             title: "Lembre-se de tomar seu medicamento",
             body:
-                "${confirmedDrug.name} - ${item["quantity"]}${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
+                "${confirmedDrug.name} - ${item["quantity"]} ${measureRepository.getAbrevTranslatedMeasure(confirmedDrug.measure)}",
             scheduledNotificationDateTime: scheduledTime,
             payLoad: confirmedDrug.drugId);
       }
